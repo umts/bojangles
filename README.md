@@ -4,4 +4,4 @@ This app continually monitors the PVTA bus departures realtime feed for issues, 
 
 If all is well, expect to see a page like this:
 
-![all-is-well](img/all-is-well.png)
+![all-is-well](img/all_is_well.png)
