@@ -1,5 +1,1 @@
-require 'whenever'
-
-every 5.minutes do
-  script 'bojangles.rb'
-end
+every(5.minutes){ script 'bojangles.rb' }
