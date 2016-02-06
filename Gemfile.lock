@@ -1,0 +1,21 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    chronic (0.10.2)
+    mail (2.6.3)
+      mime-types (>= 1.16, < 3)
+    mime-types (2.99)
+    pony (1.11)
+      mail (>= 2.0)
+    whenever (0.9.4)
+      chronic (>= 0.6.3)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  pony
+  whenever
+
+BUNDLED WITH
+   1.11.2
