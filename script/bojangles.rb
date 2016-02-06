@@ -1,7 +1,6 @@
 require 'json'
 require 'net/http'
 require 'pony'
-require 'redcarpet'
 
 PVTA_API_URL = 'http://bustracker.pvta.com/InfoPoint/rest'
 ROUTES_URI = URI([PVTA_API_URL, 'routes', 'getvisibleroutes'].join '/')
@@ -22,14 +21,12 @@ def is_nabr_done?
   @problem_json.fetch 'IsDone'
 end
 
-def markdown_pretty_json
-  renderer = Redcarpet::Render::HTML.new
-  markdown = Redcarpet::Markdown.new renderer 
-  markdown.render <<-CODE
-    ```json
-      #{JSON.pretty_generate @problem_json}
-    ```
-  CODE
+def pretty_json_html
+  <<-HTML
+    <code>
+      #{JSON.pretty_generate(@problem_json).gsub "\n", '<br>'}
+    </code>
+  HTML
 end
 
 is_nabr_done?
@@ -39,9 +36,9 @@ mail_settings = {
   from: 'transit-it@admin.umass.edu',
   subject: 'PVTA realtime feed error',
   html_body: <<-BODY
-    The 30 is shown as being done for the day.
-    Details:
-    #{markdown_pretty_json}
+    The 30 is shown as being done for the day. <br>
+    Details: <br>
+    #{pretty_json_html}
   BODY
 }
 
