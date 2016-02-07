@@ -91,4 +91,4 @@ module Bojangles
 end
 
 include Bojangles
-go!
+Bojangles.go!
