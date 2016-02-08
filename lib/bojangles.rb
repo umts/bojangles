@@ -89,6 +89,3 @@ module Bojangles
     end
   end
 end
-
-include Bojangles
-Bojangles.go!

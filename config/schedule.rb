@@ -1,1 +1,1 @@
-every(5.minutes){ script 'bojangles.rb' }
+every(5.minutes){ script 'runner.rb' }

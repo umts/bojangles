@@ -16,7 +16,6 @@ GEM
     minitest (5.8.3)
     pony (1.11)
       mail (>= 2.0)
-    redcarpet (3.2.3)
     thread_safe (0.3.5)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
@@ -29,7 +28,6 @@ PLATFORMS
 DEPENDENCIES
   activesupport
   pony
-  redcarpet
   whenever
 
 BUNDLED WITH
