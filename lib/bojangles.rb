@@ -21,7 +21,7 @@ module Bojangles
 
   def go!
     mail_settings = {
-      to: 'transit-it@umass.edu',
+      to: 'transit-it@admin.umass.edu',
       from: 'transit-it@admin.umass.edu',
       subject: 'PVTA realtime feed error'
     }
