@@ -4,11 +4,15 @@ require 'net/http'
 require 'pony'
 
 module Bojangles
+  config_file = File.read 'config.json'
+  CONFIG = JSON.parse config_file
 
   PVTA_API_URL = 'http://bustracker.pvta.com/InfoPoint/rest'
   ROUTES_URI = URI([PVTA_API_URL, 'routes', 'getvisibleroutes'].join '/')
   STUDIO_ARTS_BUILDING_ID = 72
   DEPARTURES_URI = URI([PVTA_API_URL, 'stopdepartures', 'get', STUDIO_ARTS_BUILDING_ID].join '/')
+
+  MAIL_SETTINGS = CONFIG.fetch 'mail_settings'
 
   status_file = File.read 'emailed_status.json'
   EMAILED_STATUS = JSON.parse status_file
@@ -21,16 +25,8 @@ module Bojangles
   end
 
   def go!
-    mail_settings = {
-      to: 'transit-it@admin.umass.edu',
-      from: 'transit-it@admin.umass.edu',
-      subject: 'PVTA realtime feed error'
-    }
-
-    error_methods = %i(is_nabr_done?)
-    error_messages = {
-      is_nabr_done?: "The 30 is shown as being done for the day, but 30 buses are currently scheduled to be on route."
-    }
+    error_messages = CONFIG.fetch('error_messages').symbolize_keys
+    error_methods = error_messages.keys
 
     current_status = EMAILED_STATUS
     passes, failures = [], []
@@ -45,11 +41,11 @@ module Bojangles
     end
 
     if passes.present? || failures.present?
-      mail_settings.merge! html_body: message_html(passes, failures, error_messages)
-      if ENV['BOJANGLES_DEVELOPMENT']
-        mail_settings.merge! via: :smtp, via_options: { address: 'localhost', port: 1025 }
+      MAIL_SETTINGS.merge! html_body: message_html(passes, failures, error_messages)
+      if CONFIG['environment'] == 'development'
+        MAIL_SETTINGS.merge! via: :smtp, via_options: { address: 'localhost', port: 1025 }
       end
-      Pony.mail mail_settings
+      Pony.mail MAIL_SETTINGS
       update_emailed_status! to: current_status
     end
   end

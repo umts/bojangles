@@ -1,0 +1,7 @@
+{
+  "mail_settings": {"to": "transit-it@admin.umass.edu",
+                   "from": "transit-it@admin.umass.edu",
+                   "subject": "PVTA realtime feed error"},
+  "error_messages": {"is_nabr_done?": "The 30 is shown as being done for the day, but 30 buses are currently scheduled to be on route."},
+  "environment": "development"
+}
