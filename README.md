@@ -30,6 +30,12 @@ Executing the script with the BOJANGLES_DEVELOPMENT environment variable set wil
 
 Then navigate to localhost:1080 to see your email output.
 
+# Testing
+
+You'll need RSpec.
+
+> gem install rspec
+
 # Attributions
 
 Much thanks to the whenever and [Pony](https://github.com/benprew/pony) developers for releasing their code open-source.

@@ -66,7 +66,6 @@ module Bojangles
     message << message_list(failures, :failures, error_messages) if failures.present?
     message << message_list(passes,   :passes,   error_messages) if passes.present?
     message << 'Bojangles will let you know if anything changes. You can trust Bojangles.'
-    puts message
     message.flatten.join '<br>'
   end
 
