@@ -55,8 +55,8 @@ describe Bojangles do
 
   describe 'message_list' do
     let(:errors) { [:error_name] }
-    let(:error_messages){ { error_name: 'error message' } }
-    let(:call) { message_list errors, mode, error_messages } 
+    let(:error_messages) { { error_name: 'error message' } }
+    let(:call) { message_list errors, mode, error_messages }
     context 'dealing with failures' do
       let(:mode) { :failures }
       it 'has a sad-sounding first element' do
@@ -64,7 +64,7 @@ describe Bojangles do
       end
     end
     context 'dealing with passes' do
-      let(:mode) { :passes } 
+      let(:mode) { :passes }
       it 'has a happy-sounding first element' do
         expect(call.first).to include 'pleased to report'
       end
