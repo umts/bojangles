@@ -9,7 +9,7 @@ describe Bojangles do
     context 'with passes and no failures' do
       let(:passes) { 'passes' }
       let(:failures) { [] }
-      before :each do
+      before do
         allow_any_instance_of(Bojangles)
           .to receive(:message_list)
           .with 'passes', :passes, 'error messages'
@@ -21,7 +21,7 @@ describe Bojangles do
     context 'with failures and no passes' do
       let(:passes) { [] }
       let(:failures) { 'failures' }
-      before :each do
+      before do
         allow_any_instance_of(Bojangles)
           .to receive(:message_list)
           .with 'failures', :failures, 'error messages'
@@ -33,7 +33,7 @@ describe Bojangles do
     context 'with both failures and passes' do
       let(:passes) { 'passes' }
       let(:failures) { 'failures' }
-      before :each do
+      before do
         allow_any_instance_of(Bojangles)
           .to receive(:message_list)
           .with 'passes', :passes, 'error messages'

@@ -13,6 +13,7 @@ module Bojangles
   status_file = File.read 'emailed_status.json'
   EMAILED_STATUS = JSON.parse status_file
 
+  # NO TESTS: we're gonna throw this out
   def get_nabr_id!
     response = JSON.parse(Net::HTTP.get ROUTES_URI)
     nabr = response.find{|route| route['LongName'] == 'North Amherst / Old Belchertown Rd'}
@@ -53,6 +54,7 @@ module Bojangles
     end
   end
 
+  # NO TESTS: we're gonna throw this out
   def is_nabr_done?
     response = JSON.parse(Net::HTTP.get DEPARTURES_URI)
     route_directions = response.first.fetch 'RouteDirections'
