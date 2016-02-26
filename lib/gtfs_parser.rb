@@ -6,9 +6,24 @@ EXAMPLE_STOP_NAME = "Studio Arts Building"
 CACHE_FILE = 'cached_departures.json'
 
 module GtfsParser
+
+  def cache_departures!
+    File.open CACHE_FILE, 'w' do |file|
+      file.puts find_departures.map(&:to_h).to_json
+    end
+  end
+
+  def find_departures_within(minutes)
+    cached_departures.select do |row|
+      departure_within? minutes, row
+    end
+  end
+
   def get_files!
     # TODO
   end
+
+  private
 
   def find_service_ids_today
     filename = [GTFS_DIR, 'calendar_dates.txt'].join '/'
@@ -59,11 +74,6 @@ module GtfsParser
     departures
   end
 
-  def cache_departures!
-    File.open CACHE_FILE, 'w' do |file|
-      file.puts find_departures.map(&:to_h).to_json
-    end
-  end
 
   def cached_departures
     departures = File.read CACHE_FILE
@@ -75,8 +85,6 @@ module GtfsParser
       departure_within? minutes, row
     end
   end
-
-  private
 
   # input e.g. '16:30:00'
   def parse_departure_time(time)
