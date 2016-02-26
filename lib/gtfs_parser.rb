@@ -9,8 +9,10 @@ CACHE_FILE = 'cached_departures.json'
 module GtfsParser
 
   def cache_departures!
-    File.open CACHE_FILE, 'w' do |file|
-      file.puts find_departures.map(&:to_h).to_json
+    unless cache_valid?
+      File.open CACHE_FILE, 'w' do |file|
+        file.puts find_departures.map(&:to_h).to_json
+      end
     end
   end
 
@@ -107,5 +109,11 @@ module GtfsParser
     compare_time = Time.now + (60 * minutes)
     time = parse_departure_time row.fetch('departure_time')
     Time.now < time && time < compare_time
+  end
+
+  def cache_valid?
+    yesterday = Time.now - (24 * 60 * 60)
+    # re-cache if it's 24 hours old
+    File.exists?(CACHE_FILE) && File.mtime(CACHE_FILE) > yesterday
   end
 end
