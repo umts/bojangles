@@ -20,7 +20,7 @@ module Bojangles
   # NO TESTS: we're gonna throw this out
   def get_nabr_id!
     response = JSON.parse(Net::HTTP.get ROUTES_URI)
-    nabr = response.find{|route| route['LongName'] == 'North Amherst / Old Belchertown Rd'}
+    nabr = response.find { |route| route['LongName'] == 'North Amherst / Old Belchertown Rd' }
     nabr.fetch 'RouteId'
   end
 
@@ -55,7 +55,7 @@ module Bojangles
     response = JSON.parse(Net::HTTP.get DEPARTURES_URI)
     route_directions = response.first.fetch 'RouteDirections'
     route_id = get_nabr_id!
-    departure = route_directions.find{|data| data['RouteId'] == route_id}
+    departure = route_directions.find{ |data| data['RouteId'] == route_id }
     departure.fetch 'IsDone'
   end
 
@@ -72,11 +72,11 @@ module Bojangles
               when :passes then 'Bojangles is pleased to report that the following errors seem to have been resolved:'
               when :failures then 'Bojangles has noticed the following new errors:'
               end
-    list = "<ul>"
+    list = '<ul>'
     errors.each do |error|
       list << "<li>#{error_messages.fetch error}"
     end
-    list << "</ul>"
+    list << '</ul>'
     [heading, list]
   end
 
