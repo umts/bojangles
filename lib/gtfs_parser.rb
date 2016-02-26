@@ -1,35 +1,60 @@
 require 'csv'
 require 'json'
+require 'net/http'
 require 'pry-byebug'
-
-GTFS_DIR = File.expand_path('../../gtfs/', __FILE__)
-EXAMPLE_STOP_NAME = 'Studio Arts Building'.freeze
-CACHE_FILE = 'cached_departures.json'
+require 'zipruby'
 
 module GtfsParser
+  LOCAL_GTFS_DIR = File.expand_path('../../gtfs/', __FILE__)
+  EXAMPLE_STOP_NAME = 'Studio Arts Building'.freeze
+  CACHE_FILE = 'cached_departures.json'
+  GTFS_HOST = 'http://pvta.com'
+  GTFS_PATH = '/g_trans/google_transit.zip'
 
   def cache_departures!
-    unless cache_valid?
-      File.open CACHE_FILE, 'w' do |file|
-        file.puts find_departures.map(&:to_h).to_json
-      end
+    File.open CACHE_FILE, 'w' do |file|
+      file.puts find_departures.map(&:to_h).to_json
     end
   end
 
-  def find_departures_within(minutes)
+  def departures_within(minutes)
     cached_departures.select do |row|
       departure_within? minutes, row
     end
   end
 
   def get_files!
-    # TODO
+    FileUtils.rm_rf LOCAL_GTFS_DIR
+    FileUtils.mkdir_p LOCAL_GTFS_DIR
+    zipfile = Net::HTTP.get URI(GTFS_HOST + GTFS_PATH)
+    Zip::Archive.open_buffer(zipfile) do |archive|
+      archive.each do |file|
+        file_path = File.join(LOCAL_GTFS_DIR, file.name)
+        File.open(file_path, 'w') do |f|
+          f << file.read
+        end
+      end
+    end
+  end
+
+  def prepare!
+    get_files! && cache_departures! unless files_valid?
+    cache_departures! unless cache_valid?
   end
 
   private
 
+  # returns false if the hosted file is more recent
+  # than our cached departures
+  def files_valid?
+    http = Net::HTTP.new GTFS_HOST
+    response = http.head GTFS_PATH
+    mtime = DateTime.parse response['last-modified']
+    mtime < File.mtime(CACHE_FILE)
+  end
+
   def find_service_ids_today
-    filename = [GTFS_DIR, 'calendar.txt'].join '/'
+    filename = [LOCAL_GTFS_DIR, 'calendar.txt'].join '/'
     entries = []
     weekday_columns = %w(sunday monday tuesday wednesday thursday friday saturday)
     weekday = weekday_columns[Date.today.wday]
@@ -50,7 +75,7 @@ module GtfsParser
   end
 
   def find_example_stop_id
-    filename = [GTFS_DIR, 'stops.txt'].join '/'
+    filename = [LOCAL_GTFS_DIR, 'stops.txt'].join '/'
     stop = {}
     CSV.foreach filename, headers: true do |row|
       if row.fetch('stop_name').include? EXAMPLE_STOP_NAME
@@ -63,7 +88,7 @@ module GtfsParser
 
   def find_trips_operating_today
     service_ids = find_service_ids_today
-    filename = [GTFS_DIR, 'trips.txt'].join '/'
+    filename = [LOCAL_GTFS_DIR, 'trips.txt'].join '/'
     trips = []
     CSV.foreach filename, headers: true do |row|
       if service_ids.include? row.fetch('service_id')
@@ -75,7 +100,7 @@ module GtfsParser
   end
 
   def find_departures
-    filename = [GTFS_DIR, 'stop_times.txt'].join '/'
+    filename = [LOCAL_GTFS_DIR, 'stop_times.txt'].join '/'
     stop_id = find_example_stop_id
     trips = find_trips_operating_today
     trip_ids = trips.map { |trip| trip.fetch :id }
