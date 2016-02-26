@@ -3,7 +3,7 @@ require 'json'
 require 'pry-byebug'
 
 GTFS_DIR = File.expand_path('../../gtfs/', __FILE__)
-EXAMPLE_STOP_NAME = "Studio Arts Building"
+EXAMPLE_STOP_NAME = 'Studio Arts Building'.freeze
 CACHE_FILE = 'cached_departures.json'
 
 module GtfsParser
@@ -34,11 +34,11 @@ module GtfsParser
     CSV.foreach filename, headers: true do |row|
       service_id = row.fetch('service_id')
       if service_id.include? 'UMTS'
-        if row.fetch(weekday) == "1"
+        if row.fetch(weekday) == '1'
           service_id = row.fetch('service_id')
           start_date = Date.parse row.fetch('start_date')
           end_date = Date.parse row.fetch('end_date')
-          if (start_date..end_date).include?(Date.today)
+          if (start_date..end_date).cover?(Date.today)
             entries << service_id
           end
         end
@@ -65,8 +65,8 @@ module GtfsParser
     trips = []
     CSV.foreach filename, headers: true do |row|
       if service_ids.include? row.fetch('service_id')
-        trips << {id: row.fetch('trip_id'),
-                  route_id: row.fetch('route_id')}
+        trips << { id: row.fetch('trip_id'),
+                   route_id: row.fetch('route_id') }
       end
     end
     trips
@@ -82,9 +82,9 @@ module GtfsParser
       trip_id = row.fetch('trip_id')
       if trip_ids.include? trip_id
         if row.fetch('stop_id') == stop_id
-          trip = trips.find{ |trip| trip.fetch(:id) == trip_id }
-          departures << {route_id: trip.fetch(:route_id),
-                         departure_time: row.fetch('departure_time')}
+          trip = trips.find { |trip_row| trip_row.fetch(:id) == trip_id }
+          departures << { route_id: trip.fetch(:route_id),
+                          departure_time: row.fetch('departure_time') }
         end
       end
     end
