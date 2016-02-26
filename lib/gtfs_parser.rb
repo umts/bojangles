@@ -1,5 +1,6 @@
 require 'csv'
 require 'json'
+require 'pry-byebug'
 
 GTFS_DIR = File.expand_path('../../gtfs/', __FILE__)
 EXAMPLE_STOP_NAME = "Studio Arts Building"
@@ -26,14 +27,24 @@ module GtfsParser
   private
 
   def find_service_ids_today
-    filename = [GTFS_DIR, 'calendar_dates.txt'].join '/'
-    date = Date.today.strftime '%Y%m%d'
-    calendar_dates = []
+    filename = [GTFS_DIR, 'calendar.txt'].join '/'
+    entries = []
+    weekday_columns = %w(sunday monday tuesday wednesday thursday friday saturday)
+    weekday = weekday_columns[Date.today.wday]
     CSV.foreach filename, headers: true do |row|
-      calendar_dates << row if row.fetch('date') == date
+      service_id = row.fetch('service_id')
+      if service_id.include? 'UMTS'
+        if row.fetch(weekday) == "1"
+          service_id = row.fetch('service_id')
+          start_date = Date.parse row.fetch('start_date')
+          end_date = Date.parse row.fetch('end_date')
+          if (start_date..end_date).include?(Date.today)
+            entries << service_id
+          end
+        end
+      end
     end
-    calendar_dates.map { |row| row.fetch 'service_id' }
-                  .select { |name| name.include? 'UMTS' }
+    entries
   end
 
   def find_example_stop_id
@@ -53,7 +64,10 @@ module GtfsParser
     filename = [GTFS_DIR, 'trips.txt'].join '/'
     trips = []
     CSV.foreach filename, headers: true do |row|
-      trips << row if service_ids.include? row.fetch('service_id')
+      if service_ids.include? row.fetch('service_id')
+        trips << {id: row.fetch('trip_id'),
+                  route_id: row.fetch('route_id')}
+      end
     end
     trips
   end
@@ -62,28 +76,23 @@ module GtfsParser
     filename = [GTFS_DIR, 'stop_times.txt'].join '/'
     stop_id = find_example_stop_id
     trips = find_trips_operating_today
-    trip_ids = trips.map { |row| row.fetch('trip_id') }
+    trip_ids = trips.map { |trip| trip.fetch :id }
     departures = []
     CSV.foreach filename, headers: true do |row|
-      if trip_ids.include? row.fetch('trip_id')
+      trip_id = row.fetch('trip_id')
+      if trip_ids.include? trip_id
         if row.fetch('stop_id') == stop_id
-          departures << row
+          trip = trips.find{ |trip| trip.fetch(:id) == trip_id }
+          departures << {route_id: trip.fetch(:route_id),
+                         departure_time: row.fetch('departure_time')}
         end
       end
     end
     departures
   end
 
-
   def cached_departures
-    departures = File.read CACHE_FILE
-    JSON.parse departures
-  end
-
-  def find_departures_within(minutes)
-    cached_departures.select do |row|
-      departure_within? minutes, row
-    end
+    JSON.parse File.read(CACHE_FILE)
   end
 
   # input e.g. '16:30:00'
