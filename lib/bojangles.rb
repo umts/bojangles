@@ -25,7 +25,7 @@ module Bojangles
     response.each do |route|
       real_name = route.fetch 'ShortName'
       avail_id = route.fetch 'RouteId'
-      routes[real_name] = avail_id
+      routes[avail_id] = real_name
     end
     File.open CACHED_ROUTES_FILE, 'w' do |file|
       file.puts routes.to_json
@@ -37,11 +37,21 @@ module Bojangles
     JSON.parse File.read(CACHED_ROUTES_FILE)
   end
 
-  # NO TESTS: we're gonna throw this out
-  def get_nabr_id!
-    response = JSON.parse(Net::HTTP.get ROUTES_URI)
-    nabr = response.find { |route| route['LongName'] == 'North Amherst / Old Belchertown Rd' }
-    nabr.fetch 'RouteId'
+  def get_avail_departure_times!
+    times = {}
+    stop_departure = JSON.parse(Net::HTTP.get DEPARTURES_URI).first
+    route_directions = stop_departure.fetch 'RouteDirections'
+    route_directions.each do |route|
+      route_id = route.fetch('RouteId').to_s
+      route_number = cached_route_mappings[route_id]
+      times[route_number] = []
+      departures = route.fetch 'Departures'
+      departures.each do |departure|
+        departure_time = departure.fetch 'SDT'
+        times[route_number] << parse_json_unix_timestamp(departure_time)
+      end
+    end
+    times
   end
 
   def go!
@@ -70,15 +80,6 @@ module Bojangles
     end
   end
 
-  # NO TESTS: we're gonna throw this out
-  def is_nabr_done?
-    response = JSON.parse(Net::HTTP.get DEPARTURES_URI)
-    route_directions = response.first.fetch 'RouteDirections'
-    route_id = get_nabr_id!
-    departure = route_directions.find { |data| data['RouteId'] == route_id }
-    departure.fetch 'IsDone'
-  end
-
   def message_html(passes, failures, error_messages)
     message = ["This message brought to you by Bojangles, UMass Transit's monitoring service for the PVTA realtime bus departures feed."]
     message << message_list(failures, :failures, error_messages) if failures.present?
@@ -98,6 +99,11 @@ module Bojangles
     end
     list << '</ul>'
     [heading, list]
+  end
+
+  def parse_json_unix_timestamp(timestamp)
+    matches = timestamp.match /\/Date\((\d+)000-0500\)\//
+    Time.at matches.captures.first.to_i
   end
 
   def update_emailed_status!(to:)
