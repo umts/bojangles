@@ -6,9 +6,9 @@ require 'zipruby'
 module GtfsParser
   LOCAL_GTFS_DIR = File.expand_path('../../gtfs/', __FILE__)
   EXAMPLE_STOP_NAME = 'Studio Arts Building'.freeze
-  CACHE_FILE = 'cached_departures.json'
-  GTFS_HOST = 'http://pvta.com'
-  GTFS_PATH = '/g_trans/google_transit.zip'
+  CACHE_FILE = 'cached_departures.json'.freeze
+  GTFS_HOST = 'http://pvta.com'.freeze
+  GTFS_PATH = '/g_trans/google_transit.zip'.freeze
 
   def departures_within(minutes)
     departure_times = cached_departures
@@ -44,7 +44,7 @@ module GtfsParser
   def cache_valid?
     yesterday = Time.now - (24 * 60 * 60)
     # re-cache if it's 24 hours old
-    File.exists?(CACHE_FILE) && File.mtime(CACHE_FILE) > yesterday
+    File.exist?(CACHE_FILE) && File.mtime(CACHE_FILE) > yesterday
   end
 
   # returns false if the hosted file is more recent

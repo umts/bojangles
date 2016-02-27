@@ -7,7 +7,7 @@ module Bojangles
   config_file = File.read 'config.json'
   CONFIG = JSON.parse config_file
 
-  PVTA_API_URL = 'http://bustracker.pvta.com/InfoPoint/rest'
+  PVTA_API_URL = 'http://bustracker.pvta.com/InfoPoint/rest'.freeze
   ROUTES_URI = URI([PVTA_API_URL, 'routes', 'getvisibleroutes'].join '/')
   STUDIO_ARTS_BUILDING_ID = 72
   DEPARTURES_URI = URI([PVTA_API_URL, 'stopdepartures', 'get', STUDIO_ARTS_BUILDING_ID].join '/')
@@ -55,7 +55,7 @@ module Bojangles
     response = JSON.parse(Net::HTTP.get DEPARTURES_URI)
     route_directions = response.first.fetch 'RouteDirections'
     route_id = get_nabr_id!
-    departure = route_directions.find{ |data| data['RouteId'] == route_id }
+    departure = route_directions.find { |data| data['RouteId'] == route_id }
     departure.fetch 'IsDone'
   end
 
