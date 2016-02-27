@@ -1,2 +1,3 @@
 gtfs/**/*
 cached_departures.json
+route_mappings.json

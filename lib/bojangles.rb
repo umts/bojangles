@@ -17,6 +17,26 @@ module Bojangles
   status_file = File.read 'emailed_status.json'
   EMAILED_STATUS = JSON.parse status_file
 
+  CACHED_ROUTES_FILE = 'route_mappings.json'.freeze
+
+  def cache_route_mappings!
+    response = JSON.parse(Net::HTTP.get ROUTES_URI)
+    routes = {}
+    response.each do |route|
+      real_name = route.fetch 'ShortName'
+      avail_id = route.fetch 'RouteId'
+      routes[real_name] = avail_id
+    end
+    File.open CACHED_ROUTES_FILE, 'w' do |file|
+      file.puts routes.to_json
+    end
+    routes.count
+  end
+
+  def cached_route_mappings
+    JSON.parse File.read(CACHED_ROUTES_FILE)
+  end
+
   # NO TESTS: we're gonna throw this out
   def get_nabr_id!
     response = JSON.parse(Net::HTTP.get ROUTES_URI)
