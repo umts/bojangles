@@ -1,7 +1,6 @@
 require 'csv'
 require 'json'
 require 'net/http'
-require 'pry-byebug'
 require 'zipruby'
 
 module GtfsParser
@@ -12,14 +11,19 @@ module GtfsParser
   GTFS_PATH = '/g_trans/google_transit.zip'
 
   def cache_departures!
+    departures = find_departures
     File.open CACHE_FILE, 'w' do |file|
-      file.puts find_departures.map(&:to_h).to_json
+      file.puts departures.to_json
     end
+    departures.values.count
   end
 
   def departures_within(minutes)
-    cached_departures.select do |row|
-      departure_within? minutes, row
+    departure_times = cached_departures
+    departure_times.each do |route_number, times|
+      departure_times[route_number] = times.select do |time|
+        time_within? minutes, time
+      end
     end
   end
 
@@ -27,10 +31,10 @@ module GtfsParser
     FileUtils.rm_rf LOCAL_GTFS_DIR
     FileUtils.mkdir_p LOCAL_GTFS_DIR
     zipfile = Net::HTTP.get URI(GTFS_HOST + GTFS_PATH)
-    Zip::Archive.open_buffer(zipfile) do |archive|
+    Zip::Archive.open_buffer zipfile do |archive|
       archive.each do |file|
-        file_path = File.join(LOCAL_GTFS_DIR, file.name)
-        File.open(file_path, 'w') do |f|
+        file_path = File.join LOCAL_GTFS_DIR, file.name
+        File.open file_path, 'w' do |f|
           f << file.read
         end
       end
@@ -89,11 +93,10 @@ module GtfsParser
   def find_trips_operating_today
     service_ids = find_service_ids_today
     filename = [LOCAL_GTFS_DIR, 'trips.txt'].join '/'
-    trips = []
+    trips = {}
     CSV.foreach filename, headers: true do |row|
       if service_ids.include? row.fetch('service_id')
-        trips << { id: row.fetch('trip_id'),
-                   route_id: row.fetch('route_id') }
+        trips[row.fetch 'trip_id'] = row.fetch('route_id')
       end
     end
     trips
@@ -103,15 +106,14 @@ module GtfsParser
     filename = [LOCAL_GTFS_DIR, 'stop_times.txt'].join '/'
     stop_id = find_example_stop_id
     trips = find_trips_operating_today
-    trip_ids = trips.map { |trip| trip.fetch :id }
-    departures = []
+    departures = {}
     CSV.foreach filename, headers: true do |row|
       trip_id = row.fetch('trip_id')
-      if trip_ids.include? trip_id
+      if trips.key? trip_id
         if row.fetch('stop_id') == stop_id
-          trip = trips.find { |trip_row| trip_row.fetch(:id) == trip_id }
-          departures << { route_id: trip.fetch(:route_id),
-                          departure_time: row.fetch('departure_time') }
+          route_id = trips[trip_id]
+          departures[route_id] ||= []
+          departures[route_id] << row.fetch('departure_time')
         end
       end
     end
@@ -119,20 +121,22 @@ module GtfsParser
   end
 
   def cached_departures
-    JSON.parse File.read(CACHE_FILE)
+    departures = JSON.parse File.read(CACHE_FILE)
+    departures.each do |route_number, times|
+      departures[route_number] = times.map { |time| parse_time time }
+    end
   end
 
   # input e.g. '16:30:00'
-  def parse_departure_time(time)
+  def parse_time(time)
     hour, minute = time.split(':').map(&:to_i)
     date = Date.today
     hour -= 24 and date += 1 if hour >= 24
     Time.local date.year, date.month, date.day, hour, minute
   end
 
-  def departure_within?(minutes, row)
+  def time_within?(minutes, time)
     compare_time = Time.now + (60 * minutes)
-    time = parse_departure_time row.fetch('departure_time')
     Time.now < time && time < compare_time
   end
 

@@ -21,6 +21,7 @@ GEM
       thread_safe (~> 0.1)
     whenever (0.9.4)
       chronic (>= 0.6.3)
+    zipruby (0.3.6)
 
 PLATFORMS
   ruby
@@ -29,6 +30,7 @@ DEPENDENCIES
   activesupport
   pony
   whenever
+  zipruby
 
 BUNDLED WITH
    1.11.2
