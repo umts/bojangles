@@ -10,33 +10,11 @@ module GtfsParser
   GTFS_HOST = 'http://pvta.com'
   GTFS_PATH = '/g_trans/google_transit.zip'
 
-  def cache_departures!
-    departures = find_departures
-    File.open CACHE_FILE, 'w' do |file|
-      file.puts departures.to_json
-    end
-    departures.values.count
-  end
-
   def departures_within(minutes)
     departure_times = cached_departures
     departure_times.each do |route_number, times|
       departure_times[route_number] = times.select do |time|
         time_within? minutes, time
-      end
-    end
-  end
-
-  def get_files!
-    FileUtils.rm_rf LOCAL_GTFS_DIR
-    FileUtils.mkdir_p LOCAL_GTFS_DIR
-    zipfile = Net::HTTP.get URI(GTFS_HOST + GTFS_PATH)
-    Zip::Archive.open_buffer zipfile do |archive|
-      archive.each do |file|
-        file_path = File.join LOCAL_GTFS_DIR, file.name
-        File.open file_path, 'w' do |f|
-          f << file.read
-        end
       end
     end
   end
@@ -47,6 +25,27 @@ module GtfsParser
   end
 
   private
+
+  def cache_departures!
+    departures = find_departures
+    File.open CACHE_FILE, 'w' do |file|
+      file.puts departures.to_json
+    end
+    departures.values.flatten.count
+  end
+
+  def cached_departures
+    departures = JSON.parse File.read(CACHE_FILE)
+    departures.each do |route_number, times|
+      departures[route_number] = times.map { |time| parse_time time }
+    end
+  end
+
+  def cache_valid?
+    yesterday = Time.now - (24 * 60 * 60)
+    # re-cache if it's 24 hours old
+    File.exists?(CACHE_FILE) && File.mtime(CACHE_FILE) > yesterday
+  end
 
   # returns false if the hosted file is more recent
   # than our cached departures
@@ -120,10 +119,17 @@ module GtfsParser
     departures
   end
 
-  def cached_departures
-    departures = JSON.parse File.read(CACHE_FILE)
-    departures.each do |route_number, times|
-      departures[route_number] = times.map { |time| parse_time time }
+  def get_files!
+    FileUtils.rm_rf LOCAL_GTFS_DIR
+    FileUtils.mkdir_p LOCAL_GTFS_DIR
+    zipfile = Net::HTTP.get URI(GTFS_HOST + GTFS_PATH)
+    Zip::Archive.open_buffer zipfile do |archive|
+      archive.each do |file|
+        file_path = File.join LOCAL_GTFS_DIR, file.name
+        File.open file_path, 'w' do |f|
+          f << file.read
+        end
+      end
     end
   end
 
@@ -138,11 +144,5 @@ module GtfsParser
   def time_within?(minutes, time)
     compare_time = Time.now + (60 * minutes)
     Time.now < time && time < compare_time
-  end
-
-  def cache_valid?
-    yesterday = Time.now - (24 * 60 * 60)
-    # re-cache if it's 24 hours old
-    File.exists?(CACHE_FILE) && File.mtime(CACHE_FILE) > yesterday
   end
 end
