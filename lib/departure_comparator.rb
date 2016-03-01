@@ -31,15 +31,19 @@ module DepartureComparator
         # if Avail's returned SDT is before now, check that it's the last scheduled
         # departure from the stop (i.e. the bus is running late).
         if avail_time < Time.now && avail_time != last_time
-          report_incorrect_departure route_number, last_time, avail_time
+          report_incorrect_departure route_number, last_time, avail_time, 'last'
         # if the returned SDT is after now, check that it's the next scheduled departure
         elsif avail_time >= Time.now && avail_time != next_time
-          report_incorrect_departure route_number, next_time, avail_time
+          report_incorrect_departure route_number, next_time, avail_time, 'next'
         end
       else report_missing_route route_number, gtfs_time
       end
     end
     [@messages, @statuses]
+  end
+
+  def email_format(time)
+    time.strftime '%r'
   end
 
   def report_feed_down
@@ -53,16 +57,16 @@ module DepartureComparator
     @messages << <<-message
       Route #{route_number} is missing:
       Expected to be departing from Studio Arts Building
-      Expected scheduled departure time #{gtfs_time}
+      Expected scheduled departure time #{email_format gtfs_time}
     message
     @statuses[:missing_routes] << route_number
   end
 
-  def report_incorrect_departure(route_number, gtfs_time, avail_time)
+  def report_incorrect_departure(route_number, gtfs_time, avail_time, type)
     @messages << <<-message
       Incorrect route #{route_number} departure:
-      Expected next scheduled departure time #{gtfs_time}
-      Received next scheduled departure time #{avail_time}
+      Expected #{type} scheduled departure time #{email_format gtfs_time}
+      Received #{type} scheduled departure time #{email_format avail_time}
     message
     @statuses[:incorrect_times] << route_number
   end
