@@ -7,7 +7,7 @@ module GtfsParser
   LOCAL_GTFS_DIR = File.expand_path('../../gtfs/', __FILE__)
   EXAMPLE_STOP_NAME = 'Studio Arts Building'.freeze
   CACHE_FILE = 'cached_departures.json'.freeze
-  GTFS_HOST = 'http://pvta.com'.freeze
+  GTFS_HOST = 'pvta.com'.freeze
   GTFS_PATH = '/g_trans/google_transit.zip'.freeze
 
   def soonest_departures_within(hours)
@@ -21,7 +21,7 @@ module GtfsParser
 
   def prepare!
     get_files! && cache_departures! unless files_valid?
-    cache_departures! unless cache_valid?
+    cache_departures!
   end
 
   private
@@ -41,19 +41,13 @@ module GtfsParser
     end
   end
 
-  def cache_valid?
-    yesterday = Time.now - (24 * 60 * 60)
-    # re-cache if it's 24 hours old
-    File.exist?(CACHE_FILE) && File.mtime(CACHE_FILE) > yesterday
-  end
-
   # returns false if the hosted file is more recent
-  # than our cached departures
+  # than our cached GTFS files
   def files_valid?
     http = Net::HTTP.new GTFS_HOST
     response = http.head GTFS_PATH
     mtime = DateTime.parse response['last-modified']
-    mtime < File.mtime(CACHE_FILE)
+    mtime < File.mtime(LOCAL_GTFS_DIR).to_datetime
   end
 
   def find_service_ids_today
