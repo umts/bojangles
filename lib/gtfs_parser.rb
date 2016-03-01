@@ -10,18 +10,18 @@ module GtfsParser
   GTFS_HOST = 'pvta.com'.freeze
   GTFS_PATH = '/g_trans/google_transit.zip'.freeze
 
-  def soonest_departures_within(hours)
-    departure_times = cached_departures
-    departure_times.each do |route_number, times|
-      departure_times[route_number] = times.select do |time|
-        time_within? hours, time
-      end.first
-    end
-  end
-
   def prepare!
     get_files! && cache_departures! unless files_valid?
     cache_departures!
+  end
+
+  def soonest_departures_within(hours)
+    departure_times = cached_departures
+    departure_times.each do |route_number, times|
+      departure_times[route_number] = times.find do |time|
+        time_within? hours, time
+      end
+    end
   end
 
   private
