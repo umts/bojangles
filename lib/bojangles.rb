@@ -51,11 +51,12 @@ module Bojangles
     route_directions.each do |route|
       route_id = route.fetch('RouteId').to_s
       route_number = cached_route_mappings[route_id]
-      times[route_number] = []
       departure = route.fetch('Departures').first
       if departure.present?
         departure_time = departure.fetch 'SDT'
-        times[route_number] = parse_json_unix_timestamp(departure_time)
+        trip = departure.fetch 'Trip'
+        headsign = trip.fetch 'InternetServiceDesc'
+        times[[route_number, headsign]] = parse_json_unix_timestamp(departure_time)
       end
     end
     times

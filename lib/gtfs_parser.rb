@@ -47,10 +47,12 @@ module GtfsParser
   end
 
   def cached_departures
-    departures = JSON.parse File.read(CACHE_FILE)
-    departures.each do |route_number, times|
-      departures[route_number] = times.map { |time| parse_time time }.sort
+    departures = JSON.parse(File.read(CACHE_FILE))
+    parsed_departures = {}
+    departures.each do |route_data, times|
+      parsed_departures[JSON.parse(route_data)] = times.map{ |time| parse_time time }.sort
     end
+    parsed_departures
   end
 
   # returns false if the hosted file is more recent
@@ -106,7 +108,8 @@ module GtfsParser
     trips = {}
     CSV.foreach filename, headers: true do |row|
       if service_ids.include? row.fetch('service_id')
-        trips[row.fetch 'trip_id'] = row.fetch('route_id')
+        trips[row.fetch 'trip_id'] = [row.fetch('route_id'),
+                                      row.fetch('trip_headsign')]
       end
     end
     trips
@@ -121,9 +124,9 @@ module GtfsParser
       trip_id = row.fetch('trip_id')
       if trips.key? trip_id
         if row.fetch('stop_id') == stop_id
-          route_id = trips[trip_id]
-          departures[route_id] ||= []
-          departures[route_id] << row.fetch('departure_time')
+          route_data = trips[trip_id]
+          departures[route_data] ||= []
+          departures[route_data] << row.fetch('departure_time')
         end
       end
     end

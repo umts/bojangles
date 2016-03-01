@@ -25,18 +25,18 @@ module DepartureComparator
     gtfs_times = soonest_departures_within DEPARTURE_FUTURE_HOURS
     # Look through each scheduled route, and make sure that each route is present,
     # and that the next reported departure has the correct scheduled time.
-    gtfs_times.each do |route_number, (last_time, next_time)|
-      if avail_times.key? route_number
-        avail_time = avail_times[route_number]
+    gtfs_times.each do |(route_number, headsign), (last_time, next_time)|
+      if avail_times.key? [route_number, headsign]
+        avail_time = avail_times.fetch [route_number, headsign]
         # if Avail's returned SDT is before now, check that it's the last scheduled
         # departure from the stop (i.e. the bus is running late).
         if avail_time < Time.now && avail_time != last_time
-          report_incorrect_departure route_number, last_time, avail_time, 'last'
+          report_incorrect_departure route_number, headsign, last_time, avail_time, 'last'
         # if the returned SDT is after now, check that it's the next scheduled departure
         elsif avail_time >= Time.now && avail_time != next_time
-          report_incorrect_departure route_number, next_time, avail_time, 'next'
+          report_incorrect_departure route_number, headsign, next_time, avail_time, 'next'
         end
-      else report_missing_route route_number, gtfs_time
+      else report_missing_route route_number, headsign, next_time
       end
     end
     [@messages, @statuses]
@@ -53,18 +53,18 @@ module DepartureComparator
     @statuses[:feed_down] = true
   end
 
-  def report_missing_route(route_number, gtfs_time)
+  def report_missing_route(route_number, headsign, gtfs_time)
     @messages << <<-message
-      Route #{route_number} is missing:
+      Route #{route_number} with headsign #{headsign} is missing:
       Expected to be departing from Studio Arts Building
       Expected scheduled departure time #{email_format gtfs_time}
     message
     @statuses[:missing_routes] << route_number
   end
 
-  def report_incorrect_departure(route_number, gtfs_time, avail_time, type)
+  def report_incorrect_departure(route_number, headsign, gtfs_time, avail_time, type)
     @messages << <<-message
-      Incorrect route #{route_number} departure:
+      Incorrect route #{route_number} departure with headsign #{headsign}:
       Expected #{type} scheduled departure time #{email_format gtfs_time}
       Received #{type} scheduled departure time #{email_format avail_time}
     message
