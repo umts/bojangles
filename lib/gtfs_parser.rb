@@ -10,12 +10,12 @@ module GtfsParser
   GTFS_HOST = 'http://pvta.com'.freeze
   GTFS_PATH = '/g_trans/google_transit.zip'.freeze
 
-  def departures_within(minutes)
+  def soonest_departures_within(hours)
     departure_times = cached_departures
     departure_times.each do |route_number, times|
       departure_times[route_number] = times.select do |time|
-        time_within? minutes, time
-      end
+        time_within? hours, time
+      end.first
     end
   end
 
@@ -141,8 +141,8 @@ module GtfsParser
     Time.local date.year, date.month, date.day, hour, minute
   end
 
-  def time_within?(minutes, time)
-    compare_time = Time.now + (60 * minutes)
+  def time_within?(hours, time)
+    compare_time = Time.now + (60 * 60 * hours)
     Time.now < time && time < compare_time
   end
 end
