@@ -1,4 +1,5 @@
 require 'csv'
+require 'fileutils'
 require 'json'
 require 'net/http'
 require 'zipruby'
@@ -7,6 +8,7 @@ module GtfsParser
   LOCAL_GTFS_DIR = File.expand_path('../../gtfs/', __FILE__)
   EXAMPLE_STOP_NAME = 'Studio Arts Building'.freeze
   CACHE_FILE = 'cached_departures.json'.freeze
+  GTFS_PROTOCOL = 'http://'.freeze
   GTFS_HOST = 'pvta.com'.freeze
   GTFS_PATH = '/g_trans/google_transit.zip'.freeze
 
@@ -55,9 +57,14 @@ module GtfsParser
   # than our cached GTFS files
   def files_valid?
     http = Net::HTTP.new GTFS_HOST
-    response = http.head GTFS_PATH
-    mtime = DateTime.parse response['last-modified']
-    mtime < File.mtime(LOCAL_GTFS_DIR).to_datetime
+    begin
+      response = http.head GTFS_PATH
+    rescue SocketError
+      true
+    else
+      mtime = DateTime.parse response['last-modified']
+      mtime < File.mtime(LOCAL_GTFS_DIR).to_datetime
+    end
   end
 
   def find_service_ids_today
@@ -126,7 +133,11 @@ module GtfsParser
   def get_files!
     FileUtils.rm_rf LOCAL_GTFS_DIR
     FileUtils.mkdir_p LOCAL_GTFS_DIR
-    zipfile = Net::HTTP.get URI(GTFS_HOST + GTFS_PATH)
+    begin
+      zipfile = Net::HTTP.get URI(GTFS_PROTOCOL + GTFS_HOST + GTFS_PATH)
+    rescue SocketError
+      return
+    end
     Zip::Archive.open_buffer zipfile do |archive|
       archive.each do |file|
         file_path = File.join LOCAL_GTFS_DIR, file.name
