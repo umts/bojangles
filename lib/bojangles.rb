@@ -1,8 +1,15 @@
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/hash/conversions'
 require 'json'
 require 'net/http'
 require 'pony'
+require 'pry-byebug'
 
+require_relative 'departure_comparator'
+include DepartureComparator
+
+# Bojangles is the main driver of the script, and is responsible for communicating
+# with the Avail realtime feed.
 module Bojangles
   config_file = File.read 'config.json'
   CONFIG = JSON.parse config_file
@@ -12,7 +19,7 @@ module Bojangles
   STUDIO_ARTS_BUILDING_ID = 72
   DEPARTURES_URI = URI([PVTA_API_URL, 'stopdepartures', 'get', STUDIO_ARTS_BUILDING_ID].join '/')
 
-  MAIL_SETTINGS = CONFIG.fetch 'mail_settings'
+  MAIL_SETTINGS = CONFIG.fetch('mail_settings').symbolize_keys
 
   status_file = File.read 'emailed_status.json'
   EMAILED_STATUS = JSON.parse status_file
@@ -45,57 +52,45 @@ module Bojangles
       route_id = route.fetch('RouteId').to_s
       route_number = cached_route_mappings[route_id]
       times[route_number] = []
-      departures = route.fetch 'Departures'
-      departures.each do |departure|
+      departure = route.fetch('Departures').first
+      if departure.present?
         departure_time = departure.fetch 'SDT'
-        times[route_number] << parse_json_unix_timestamp(departure_time)
+        times[route_number] = parse_json_unix_timestamp(departure_time)
       end
     end
     times
   end
 
   def go!
-    error_messages = CONFIG.fetch('error_messages').symbolize_keys
-    error_methods = error_messages.keys
+    error_messages, statuses = DepartureComparator.compare
 
-    current_status = EMAILED_STATUS
-    passes, failures = [], []
-
-    error_methods.each do |error|
-      status = send error
-      emailed_status = EMAILED_STATUS.fetch error.to_s
-      if status != emailed_status
-        (status ? failures : passes).send :<<, error
-        current_status.merge! error.to_s => status
-      end
-    end
-
-    if passes.present? || failures.present?
-      MAIL_SETTINGS.merge! html_body: message_html(passes, failures, error_messages)
+    if error_messages.present?
+      MAIL_SETTINGS[:html_body] = message_html(error_messages)
       if CONFIG['environment'] == 'development'
         MAIL_SETTINGS.merge! via: :smtp, via_options: { address: 'localhost', port: 1025 }
       end
       Pony.mail MAIL_SETTINGS
-      update_emailed_status! to: current_status
+      update_emailed_status! to: statuses
     end
   end
 
-  def message_html(passes, failures, error_messages)
+  def message_html(error_messages)
     message = ["This message brought to you by Bojangles, UMass Transit's monitoring service for the PVTA realtime bus departures feed."]
-    message << message_list(failures, :failures, error_messages) if failures.present?
-    message << message_list(passes,   :passes,   error_messages) if passes.present?
+    message << message_list(error_messages)
     message << 'Bojangles will let you know if anything changes. You can trust Bojangles.'
     message.flatten.join '<br>'
   end
 
-  def message_list(errors, mode, error_messages)
-    heading = case mode
-              when :passes then 'Bojangles is pleased to report that the following errors seem to have been resolved:'
-              when :failures then 'Bojangles has noticed the following new errors:'
-              end
+  def message_list(error_messages)
+    heading = 'Bojangles has noticed the following errors:'
     list = '<ul>'
-    errors.each do |error|
-      list << "<li>#{error_messages.fetch error}"
+    error_messages.each do |error|
+      list << '<li>'
+      error.split("\n").each do |line|
+        list << line.lstrip
+        list << '<br>'
+      end
+      list << '</li>'
     end
     list << '</ul>'
     [heading, list]

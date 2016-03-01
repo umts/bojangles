@@ -37,7 +37,7 @@ module GtfsParser
   def cached_departures
     departures = JSON.parse File.read(CACHE_FILE)
     departures.each do |route_number, times|
-      departures[route_number] = times.map { |time| parse_time time }
+      departures[route_number] = times.map { |time| parse_time time }.sort
     end
   end
 

@@ -2,6 +2,5 @@
   "mail_settings": {"to": "transit-it@admin.umass.edu",
                    "from": "transit-it@admin.umass.edu",
                    "subject": "PVTA realtime feed error"},
-  "error_messages": {},
   "environment": "development"
 }
