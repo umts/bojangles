@@ -60,7 +60,7 @@ module GtfsParser
     filename = [LOCAL_GTFS_DIR, 'calendar.txt'].join '/'
     entries = []
     weekday_columns = %w(sunday monday tuesday wednesday thursday friday saturday)
-    weekday = weekday_columns[Date.today.wday]
+    weekday = weekday_columns[todays_date.wday]
     CSV.foreach filename, headers: true do |row|
       service_id = row.fetch('service_id')
       if service_id.include? 'UMTS'
@@ -144,5 +144,13 @@ module GtfsParser
   def time_within?(hours, time)
     compare_time = Time.now + (60 * 60 * hours)
     Time.now < time && time < compare_time
+  end
+
+  # Between midnight and 4am, return yesterday.
+  def todays_date
+    if Time.now.hour < 4
+      Date.today - 1
+    else Date.today
+    end
   end
 end
