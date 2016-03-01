@@ -26,8 +26,6 @@ Then run their daemon:
 
 Setting the environment value in `config.json` to `"development"` will send emails to Mailcatcher's local SMTP server.
 
-> BOJANGLES_DEVELOPMENT=true bundle exec script/runner.rb
-
 Then navigate to localhost:1080 to see your email output.
 
 # Testing
