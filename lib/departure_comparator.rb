@@ -25,11 +25,16 @@ module DepartureComparator
     gtfs_times = soonest_departures_within DEPARTURE_FUTURE_HOURS
     # Look through each scheduled route, and make sure that each route is present,
     # and that the next reported departure has the correct scheduled time.
-    gtfs_times.each do |route_number, gtfs_time|
+    gtfs_times.each do |route_number, (last_time, next_time)|
       if avail_times.key? route_number
         avail_time = avail_times[route_number]
-        if avail_time != gtfs_time
-          report_incorrect_departure route_number, gtfs_time, avail_time
+        # if Avail's returned SDT is before now, check that it's the last scheduled
+        # departure from the stop (i.e. the bus is running late).
+        if avail_time < Time.now && avail_time != last_time
+          report_incorrect_departure route_number, last_time, avail_time
+        # if the returned SDT is after now, check that it's the next scheduled departure
+        elsif avail_time >= Time.now && avail_time != next_time
+          report_incorrect_departure route_number, next_time, avail_time
         end
       else report_missing_route route_number, gtfs_time
       end
