@@ -22,16 +22,13 @@ module GtfsParser
   # 2. The departure scheduled to leave soonest (within 3 hours).
   def soonest_departures_within(hours)
     departure_times = cached_departures
-    departure_times.each do |route_number, times|
-      last_time = times.first
-      next_time = times.first
-      times.each_with_index do |time, i|
-        next unless time_within? hours, time
-        next_time = time
-        last_time = times[i - 1] if i > 0
-        break
+    departure_times.each do |route_data, times|
+      next_time = times.find { |time| time_within? hours, time }
+      if next_time
+        last_time = times[times.index(next_time) - 1]
+        departure_times[route_data] = [last_time, next_time]
+      else departure_times.delete route_data
       end
-      departure_times[route_number] = [last_time, next_time]
     end
     departure_times
   end
