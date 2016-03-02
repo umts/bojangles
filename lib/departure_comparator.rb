@@ -1,3 +1,5 @@
+require 'active_support/core_ext/string/strip'
+
 require_relative 'gtfs_parser'
 include GtfsParser
 
@@ -5,18 +7,17 @@ include GtfsParser
 # the departures obtained from the realtime feed.
 module DepartureComparator
 
-  @messages = []
-  @statuses = {
-    feed_down: false,
-    missing_routes: [],
-    incorrect_times: []
-  }
-
   # How many hours in the future can we expect the realtime feed to return
   # departures on a given route?
   DEPARTURE_FUTURE_HOURS = 3
 
   def compare
+    @messages = []
+    @statuses = {
+      feed_down: false,
+      missing_routes: [],
+      incorrect_times: []
+    }
     begin
       avail_times = Bojangles.get_avail_departure_times!
     rescue SocketError
@@ -47,14 +48,14 @@ module DepartureComparator
   end
 
   def report_feed_down
-    @messages << <<-message
+    @messages << <<-message.strip_heredoc
       The realtime feed is inaccessible via HTTP.
     message
     @statuses[:feed_down] = true
   end
 
   def report_missing_route(route_number, headsign, gtfs_time)
-    @messages << <<-message
+    @messages << <<-message.strip_heredoc
       Route #{route_number} with headsign #{headsign} is missing:
       Expected to be departing from Studio Arts Building
       Expected scheduled departure time #{email_format gtfs_time}
@@ -63,7 +64,7 @@ module DepartureComparator
   end
 
   def report_incorrect_departure(route_number, headsign, gtfs_time, avail_time, type)
-    @messages << <<-message
+    @messages << <<-message.strip_heredoc
       Incorrect route #{route_number} departure with headsign #{headsign}:
       Expected #{type} scheduled departure time #{email_format gtfs_time}
       Received #{type} scheduled departure time #{email_format avail_time}

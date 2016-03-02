@@ -88,7 +88,7 @@ module Bojangles
     error_messages.each do |error|
       list << '<li>'
       error.split("\n").each do |line|
-        list << line.lstrip
+        list << line
         list << '<br>'
       end
       list << '</li>'

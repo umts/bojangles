@@ -50,7 +50,7 @@ module GtfsParser
     departures = JSON.parse(File.read(CACHE_FILE))
     parsed_departures = {}
     departures.each do |route_data, times|
-      parsed_departures[JSON.parse(route_data)] = times.map{ |time| parse_time time }.sort
+      parsed_departures[JSON.parse(route_data)] = times.map { |time| parse_time time }.sort
     end
     parsed_departures
   end
