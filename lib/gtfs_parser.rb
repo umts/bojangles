@@ -13,7 +13,7 @@ module GtfsParser
   GTFS_PATH = '/g_trans/google_transit.zip'.freeze
 
   def prepare!
-    get_files! && cache_departures! unless files_valid?
+    get_files! unless files_valid?
     cache_departures!
   end
 
@@ -21,13 +21,15 @@ module GtfsParser
   # 1. The departure scheduled to have left most recently:
   # 2. The departure scheduled to leave soonest (within 3 hours).
   def soonest_departures_within(hours)
-    departure_times = cached_departures
-    departure_times.each do |route_data, times|
+    departure_times = {}
+    cached_departures.each do |(route_number, direction_id, headsign), times|
       next_time = times.find { |time| time_within? hours, time }
       if next_time
         last_time = times[times.index(next_time) - 1]
-        departure_times[route_data] = [last_time, next_time]
-      else departure_times.delete route_data
+        times_in_same_route_direction = departure_times[[route_number, headsign]]
+        unless times_in_same_route_direction && times_in_same_route_direction.last < next_time
+          departure_times[[route_number, headsign]] = [last_time, next_time]
+        end
       end
     end
     departure_times
@@ -47,7 +49,7 @@ module GtfsParser
     departures = JSON.parse(File.read(CACHE_FILE))
     parsed_departures = {}
     departures.each do |route_data, times|
-      parsed_departures[JSON.parse(route_data)] = times.map { |time| parse_time time }.sort
+      parsed_departures[JSON.parse(route_data)] = times.map { |time| parse_time time }
     end
     parsed_departures
   end
@@ -106,6 +108,7 @@ module GtfsParser
     CSV.foreach filename, headers: true do |row|
       if service_ids.include? row.fetch('service_id')
         trips[row.fetch 'trip_id'] = [row.fetch('route_id'),
+                                      row.fetch('direction_id'),
                                       row.fetch('trip_headsign')]
       end
     end

@@ -98,7 +98,7 @@ module Bojangles
   end
 
   def parse_json_unix_timestamp(timestamp)
-    matches = timestamp.match /\/Date\((\d+)000-0500\)\//
+    matches = timestamp.match /\/Date\((\d+)000-0(4|5)00\)\//
     Time.at matches.captures.first.to_i
   end
 
