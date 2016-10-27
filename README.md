@@ -12,6 +12,10 @@ To clear the entry from the crontab file:
 
 For more information, [see the whenever docs](https://github.com/javan/whenever).
 
+# How does it work?
+
+In short, bojangles compares cached GTFS departure data which we obtain from PVTA to the real-time departure feed which serves data to many other services, including [BusInfoBoard](https://github.com/umts/BusInfoBoard) and [PVTrack](https://github.com/umts/pvta-multiplatform). It then sends email notifications to report on any discrepancies it finds.
+
 # Development
 
 We develop using [Mailcatcher](http://mailcatcher.me) - thanks to those folks for releasing their fantastic tool open-source.
