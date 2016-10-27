@@ -77,7 +77,6 @@ module Bojangles
   def message_html(error_messages)
     message = ["This message brought to you by Bojangles, UMass Transit's monitoring service for the PVTA realtime bus departures feed."]
     message << message_list(error_messages)
-    message << 'Bojangles will let you know if anything changes. You can trust Bojangles.'
     message.flatten.join '<br>'
   end
 
