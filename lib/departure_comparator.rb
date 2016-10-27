@@ -11,6 +11,8 @@ module DepartureComparator
   # departures on a given route?
   DEPARTURE_FUTURE_HOURS = 3
 
+  # Returns an array of messages and of statuses by comparing the GTFS scheduled departures
+  # to the departures returned by the Avail endpoint
   def compare
     @messages = []
     @statuses = {
@@ -43,6 +45,7 @@ module DepartureComparator
     [@messages, @statuses]
   end
 
+  # a nicer-looking format of a time.
   def email_format(time)
     time.strftime '%r'
   end

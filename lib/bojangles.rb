@@ -26,6 +26,7 @@ module Bojangles
 
   CACHED_ROUTES_FILE = 'route_mappings.json'.freeze
 
+  # Cache the mapping from avail route ID to route number
   def cache_route_mappings!
     response = JSON.parse(Net::HTTP.get ROUTES_URI)
     routes = {}
@@ -39,10 +40,12 @@ module Bojangles
     end
   end
 
+  # Fetch the cached route mappings
   def cached_route_mappings
     JSON.parse File.read(CACHED_ROUTES_FILE)
   end
 
+  # Return the hash mapping route number and headsign to the provided time
   def get_avail_departure_times!
     times = {}
     stop_departure = JSON.parse(Net::HTTP.get DEPARTURES_URI).first

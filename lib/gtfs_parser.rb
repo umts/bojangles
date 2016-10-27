@@ -17,9 +17,12 @@ module GtfsParser
     cache_departures!
   end
 
-  # Returns two departure times:
-  # 1. The departure scheduled to have left most recently (according to the schedule, but not necessarily in reality);
-  # 2. The departure scheduled to leave soonest (within 3 hours).
+  # Returns a hash which you can query by route number and direction,
+  # and which stores the headsign of the next departure,
+  # the next scheduled departure,
+  # and the previous scheduled departure.
+  # Example:
+  # {['31', '0'] => ['Sunderland', '13:51:00', '14:06:00']}
   def soonest_departures_within(hours)
     departure_times = {}
     cached_departures.each do |(route_number, direction_id, headsign), times|
@@ -37,6 +40,7 @@ module GtfsParser
 
   private
 
+  # Stores departures in the cache file.
   def cache_departures!
     departures = find_departures
     File.open CACHE_FILE, 'w' do |file|
@@ -44,6 +48,7 @@ module GtfsParser
     end
   end
 
+  # Retrieves the cached departures.
   def cached_departures
     departures = JSON.parse(File.read(CACHE_FILE))
     parsed_departures = {}
@@ -53,8 +58,7 @@ module GtfsParser
     parsed_departures
   end
 
-  # returns false if the hosted file is more recent
-  # than our cached GTFS files
+  # Is the remote GTFS archive more recent than our cached files?
   def files_up_to_date?
     http = Net::HTTP.new GTFS_HOST
     begin
@@ -67,6 +71,7 @@ module GtfsParser
     end
   end
 
+  # Find an array of the service IDs which are running today.
   def find_service_ids_today
     filename = [LOCAL_GTFS_DIR, 'calendar.txt'].join '/'
     entries = []
@@ -87,6 +92,7 @@ module GtfsParser
     entries
   end
 
+  # Find the ID of the stop whose name is defined in STOP_NAME
   def find_stop_id
     filename = [LOCAL_GTFS_DIR, 'stops.txt'].join '/'
     stop = {}
@@ -99,6 +105,8 @@ module GtfsParser
     stop.fetch 'stop_id'
   end
 
+  # Returns a hash which is keyed by trip ID,
+  # and which stores the trip's route ID, direction, and headsign
   def find_trips_operating_today
     service_ids = find_service_ids_today
     filename = [LOCAL_GTFS_DIR, 'trips.txt'].join '/'
@@ -113,6 +121,10 @@ module GtfsParser
     trips
   end
 
+  # Given the trips operating day and the ID of the stop at STOP_NAME,
+  # find the departures at that route.
+  # This is a hash keyed by route ID, direction, and headsign,
+  # and which stores a sorted array of departure times.
   def find_departures
     filename = [LOCAL_GTFS_DIR, 'stop_times.txt'].join '/'
     stop_id = find_stop_id
@@ -132,6 +144,7 @@ module GtfsParser
     departures
   end
 
+  # Downloads the ZIP archive
   def get_new_files!
     FileUtils.rm_rf LOCAL_GTFS_DIR
     FileUtils.mkdir_p LOCAL_GTFS_DIR
@@ -150,7 +163,8 @@ module GtfsParser
     end
   end
 
-  # input e.g. '16:30:00'
+  # Parses a string time such as '16:30:00'
+  # into a Time object
   def parse_time(time)
     hour, minute = time.split(':').map(&:to_i)
     date = Date.today
@@ -158,6 +172,7 @@ module GtfsParser
     Time.local date.year, date.month, date.day, hour, minute
   end
 
+  # Checks to see whether a time object falls within n hours
   def time_within?(hours, time)
     compare_time = Time.now + (60 * 60 * hours)
     Time.now < time && time < compare_time
