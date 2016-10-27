@@ -16,7 +16,7 @@ module Bojangles
 
   PVTA_API_URL = 'http://bustracker.pvta.com/InfoPoint/rest'.freeze
   ROUTES_URI = URI([PVTA_API_URL, 'routes', 'getvisibleroutes'].join '/')
-  STUDIO_ARTS_BUILDING_ID = 72
+  STUDIO_ARTS_BUILDING_ID = 72 # TODO: get from stops.txt instead of writing here
   DEPARTURES_URI = URI([PVTA_API_URL, 'stopdepartures', 'get', STUDIO_ARTS_BUILDING_ID].join '/')
 
   MAIL_SETTINGS = CONFIG.fetch('mail_settings').symbolize_keys
@@ -37,7 +37,6 @@ module Bojangles
     File.open CACHED_ROUTES_FILE, 'w' do |file|
       file.puts routes.to_json
     end
-    routes.count
   end
 
   def cached_route_mappings
@@ -53,9 +52,9 @@ module Bojangles
       route_number = cached_route_mappings[route_id]
       departure = route.fetch('Departures').first
       if departure.present?
-        departure_time = departure.fetch 'SDT'
+        departure_time = departure.fetch 'SDT' # scheduled departure time
         trip = departure.fetch 'Trip'
-        headsign = trip.fetch 'InternetServiceDesc'
+        headsign = trip.fetch 'InternetServiceDesc' # headsign
         times[[route_number, headsign]] = parse_json_unix_timestamp(departure_time)
       end
     end
