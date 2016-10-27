@@ -123,7 +123,7 @@ module GtfsParser
     CSV.foreach filename, headers: true do |row|
       trip_id = row.fetch('trip_id')
       if trips.key? trip_id
-        if row.fetch('stop_id') == stop_id
+        if row.fetch('stop_id') == stop_id # TODO: screen out last stops in trip
           route_data = trips[trip_id]
           departures[route_data] ||= []
           departures[route_data] << row.fetch('departure_time')
