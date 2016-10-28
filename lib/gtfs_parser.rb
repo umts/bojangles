@@ -129,17 +129,32 @@ module GtfsParser
     filename = [LOCAL_GTFS_DIR, 'stop_times.txt'].join '/'
     stop_id = find_stop_id
     trips = find_trips_operating_today
-    departures = {}
-    CSV.foreach filename, headers: true do |row|
-      trip_id = row.fetch('trip_id')
-      if trips.key? trip_id # if the trip is running today
-        if row.fetch('stop_id') == stop_id # TODO: screen out last stops in trip
-          route_data = trips[trip_id] # route, direction ID, and headsign
-          departures[route_data] ||= []
-          departures[route_data] << row.fetch('departure_time')
-          departures[route_data].sort!
+    # Track the indices so that for each row, we can always include the row after it.
+    rows, indices = [], []
+    CSV.foreach(filename, headers: true).with_index do |row, index|
+      rows << row and next if indices.map(&:succ).include? index # If the previous row has been saved
+      trip_id = row.fetch 'trip_id'
+      if trips.key? trip_id
+        if row.fetch('stop_id') == stop_id
+          rows << row
+          indices << index
         end
       end
+    end
+    departures = {}
+    # If the departure's trip ID does not match the trip ID of the next row,
+    # then it is the last stop in the trip, so it is not a departure.
+    # For example, the last stop of an inbound 45 trip will be at Studio Arts Building,
+    # but we do *not* want to report a departure with headsign UMass.
+    # Basically, trips always end with a headsign change.
+    rows.each_slice(2).map do |row, next_row| # Take the first of each pair if it matches
+      row if row.fetch('trip_id') == next_row.fetch('trip_id')
+    end.compact.each do |row|
+      trip_id = row.fetch 'trip_id'
+      route_data = trips[trip_id]
+      departures[route_data] ||= []
+      departures[route_data] << row.fetch('departure_time')
+      departures[route_data].sort!
     end
     departures
   end
