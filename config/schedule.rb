@@ -1,3 +1,5 @@
+env :PATH, ENV['PATH']
+
 # Every minute, check for departure inaccuracies
 every 60.seconds do
   rake 'bojangles:go'
