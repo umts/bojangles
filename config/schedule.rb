@@ -1,5 +1,5 @@
 # Every minute, check for departure inaccuracies
-every 60.seconds do
+every 30.seconds do
   rake 'bojangles:go'
 end
 
