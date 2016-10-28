@@ -2,7 +2,13 @@
 
 This script continually monitors the PVTA bus departures realtime feed for issues.
 
+First, create a `config.json` file according to the `config.json.example` file.
+
 With Bundler and the correct Ruby installed, run:
+
+> bundle exec rake bojangles:daily
+
+to initialize the process. Then, begin monitoring with:
 
 > bundle exec whenever -w
 
@@ -11,6 +17,10 @@ To clear the entry from the crontab file:
 > bundle exec whenever -c
 
 For more information, [see the whenever docs](https://github.com/javan/whenever).
+
+You can also test the process as you like with:
+
+> bundle exec rake bojangles:go
 
 # How does it work?
 
