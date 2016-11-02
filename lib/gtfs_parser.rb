@@ -23,10 +23,10 @@ module GtfsParser
   # and the previous scheduled departure.
   # Example:
   # {['31', '0'] => ['Sunderland', '13:51:00', '14:06:00']}
-  def soonest_departures_within(hours)
+  def soonest_departures_within(minutes)
     departure_times = {}
     cached_departures.each do |(route_number, direction_id, headsign), times|
-      next_time = times.find { |time| time_within? hours, time }
+      next_time = times.find { |time| time_within? minutes, time }
       if next_time
         last_time = times[times.index(next_time) - 1] unless next_time == times.first
         times_in_same_route_direction = departure_times[[route_number, direction_id]]
@@ -188,9 +188,9 @@ module GtfsParser
     Time.local date.year, date.month, date.day, hour, minute
   end
 
-  # Checks to see whether a time object falls within n hours
-  def time_within?(hours, time)
-    compare_time = Time.now + (60 * 60 * hours)
+  # Checks to see whether a time object falls within n minutes
+  def time_within?(minutes, time)
+    compare_time = Time.now + (60 * minutes)
     Time.now < time && time < compare_time
   end
 
