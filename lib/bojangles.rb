@@ -65,13 +65,15 @@ module Bojangles
 
   def go!
     error_messages, statuses = DepartureComparator.compare
-
+    
     if error_messages.present?
       MAIL_SETTINGS[:html_body] = message_html(error_messages)
       if CONFIG['environment'] == 'development'
         MAIL_SETTINGS.merge! via: :smtp, via_options: { address: 'localhost', port: 1025 }
       end
       Pony.mail MAIL_SETTINGS
+      time_occurred = Time.now
+      update_log_file! to: time_occurred, error_messages, statuses
       update_emailed_status! to: statuses
     end
   end
@@ -107,4 +109,8 @@ module Bojangles
       file.puts to.to_json
     end
   end
+
+  def update_log_file!(to:)
+    File.open "#{todays_date}.json", 'w' do |file|
+      file.puts to.to_json
 end
