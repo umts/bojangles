@@ -11,8 +11,10 @@ module GtfsParser
   GTFS_PROTOCOL = 'http://'.freeze
   GTFS_HOST = 'pvta.com'.freeze
   GTFS_PATH = '/g_trans/google_transit.zip'.freeze
+  LOG_ARCHIVES = File.expand_path('../../log_directory', __FILE__)
 
   def prepare!
+    zip_log_file!
     get_new_files! unless files_up_to_date?
     cache_departures!
   end
@@ -47,6 +49,19 @@ module GtfsParser
       file.puts departures.to_json
     end
   end
+
+  # Zip yesterday's log file into an archive directory, with filenames indicating the date
+  def zip_log_file!
+    zipfile = File.open "#{todays_date}.json"
+    Zip::Archive.open_buffer zipfile do |archive|
+      archive.each do |file|
+        file_path = File.join LOG_ARCHIVES, file.name
+        File.open file_path, 'w' do |f|
+          f << file.read
+        end
+      end
+    end
+  end 
 
   # Retrieves the cached departures.
   def cached_departures
