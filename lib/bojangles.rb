@@ -65,6 +65,7 @@ module Bojangles
 
   def go!
     error_messages, statuses = DepartureComparator.compare
+    time_occurred = Time.now
     
     if error_messages.present?
       MAIL_SETTINGS[:html_body] = message_html(error_messages)
@@ -72,7 +73,6 @@ module Bojangles
         MAIL_SETTINGS.merge! via: :smtp, via_options: { address: 'localhost', port: 1025 }
       end
       Pony.mail MAIL_SETTINGS
-      time_occurred = Time.now
       update_log_file! to: time_occurred, error_messages, statuses
       update_emailed_status! to: statuses
     end

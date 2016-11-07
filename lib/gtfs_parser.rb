@@ -52,6 +52,7 @@ module GtfsParser
 
   # Zip yesterday's log file into an archive directory, with filenames indicating the date
   def zip_log_file!
+    # At 4am, so todays_date log file is yesterday's log file
     zipfile = File.open "#{todays_date}.json"
     Zip::Archive.open_buffer zipfile do |archive|
       archive.each do |file|
