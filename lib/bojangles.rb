@@ -1,5 +1,6 @@
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/conversions'
+require 'digest'
 require 'json'
 require 'net/http'
 require 'pony'
@@ -24,6 +25,13 @@ module Bojangles
   MAIL_SETTINGS = CONFIG.fetch('mail_settings').symbolize_keys
 
   CACHED_ROUTES_FILE = 'route_mappings.json'.freeze
+
+  def add_to_sent_messages!(hash)
+    hashes = sent_message_hashes + [hash]
+    File.open 'message_hashes.json', 'w' do |file|
+      file.puts hashes
+    end
+  end
 
   # Cache the mapping from avail route ID to route number
   def cache_route_mappings!
@@ -65,16 +73,19 @@ module Bojangles
 
   def go!
     error_messages, statuses = DepartureComparator.compare
-    time_occurred = Time.now
-    
+
     if error_messages.present?
-      MAIL_SETTINGS[:html_body] = message_html(error_messages)
-      if CONFIG['environment'] == 'development'
-        MAIL_SETTINGS.merge! via: :smtp, via_options: { address: 'localhost', port: 1025 }
+      message = message_html(error_messages)
+      hash = Digest::SHA256.digest message
+      unless message_hash_already_sent?(hash)
+        MAIL_SETTINGS[:html_body] = message_html(error_messages)
+        if CONFIG['environment'] == 'development'
+          MAIL_SETTINGS.merge! via: :smtp, via_options: { address: 'localhost', port: 1025 }
+        end
+        Pony.mail MAIL_SETTINGS
+        update_emailed_status! to: statuses
+        add_to_sent_messages! hash
       end
-      Pony.mail MAIL_SETTINGS
-      update_log_file! to: time_occurred, error_messages, statuses
-      update_emailed_status! to: statuses
     end
   end
 
@@ -99,6 +110,17 @@ module Bojangles
     [heading, list]
   end
 
+  def message_hash_already_sent?(hash)
+    sent_message_hashes.include? hash
+  end
+
+  def sent_message_hashes
+    if File.file? 'message_hashes.json'
+      JSON.parse File.read('message_hashes.json')
+    else []
+    end
+  end
+
   def parse_json_unix_timestamp(timestamp)
     matches = timestamp.match /\/Date\((\d+)000-0(4|5)00\)\//
     Time.at matches.captures.first.to_i
@@ -109,8 +131,4 @@ module Bojangles
       file.puts to.to_json
     end
   end
-
-  def update_log_file!(to:)
-    File.open "#{todays_date}.json", 'w' do |file|
-      file.puts to.to_json
 end
