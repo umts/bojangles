@@ -9,7 +9,7 @@ module DepartureComparator
 
   # How many hours in the future can we expect the realtime feed to return
   # departures on a given route?
-  DEPARTURE_FUTURE_HOURS = 3
+  DEPARTURE_FUTURE_HOURS = 3 * 60
 
   # Returns an array of messages and of statuses by comparing the GTFS scheduled departures
   # to the departures returned by the Avail endpoint
