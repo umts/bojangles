@@ -9,7 +9,7 @@ module DepartureComparator
 
   # How many hours in the future can we expect the realtime feed to return
   # departures on a given route?
-  DEPARTURE_FUTURE_HOURS = 3 * 60
+  DEPARTURE_FUTURE_HOURS = 3
 
   # Returns an array of messages and of statuses by comparing the GTFS scheduled departures
   # to the departures returned by the Avail endpoint
@@ -25,7 +25,7 @@ module DepartureComparator
     rescue SocketError
       report_feed_down
     end
-    gtfs_times = soonest_departures_within DEPARTURE_FUTURE_HOURS
+    gtfs_times = soonest_departures_within DEPARTURE_FUTURE_HOURS * 60
     # Look through each scheduled route, and make sure that each route is present,
     # and that the next reported departure has the correct scheduled time.
     gtfs_times.each do |(route_number, _direction_id), (headsign, last_time, next_time)|
