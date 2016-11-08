@@ -11,7 +11,7 @@ module GtfsParser
   GTFS_PROTOCOL = 'http://'.freeze
   GTFS_HOST = 'pvta.com'.freeze
   GTFS_PATH = '/g_trans/google_transit.zip'.freeze
-  LOG_ARCHIVES = File.expand_path('../../log_directory', __FILE__)
+  log = File.expand_path('../../log', __FILE__)
 
   def prepare!
     zip_log_file!
@@ -56,7 +56,7 @@ module GtfsParser
     zipfile = File.open "#{todays_date}.json"
     Zip::Archive.open_buffer zipfile do |archive|
       archive.each do |file|
-        file_path = File.join LOG_ARCHIVES, file.name
+        file_path = File.join log, file.name
         File.open file_path, 'w' do |f|
           f << file.read
         end
