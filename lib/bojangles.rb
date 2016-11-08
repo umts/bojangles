@@ -78,11 +78,13 @@ module Bojangles
       message = message_html(error_messages)
       hash = Digest::SHA256.digest message
       unless message_hash_already_sent?(hash)
+        start_time = Time.now
         MAIL_SETTINGS[:html_body] = message_html(error_messages)
         if CONFIG['environment'] == 'development'
           MAIL_SETTINGS.merge! via: :smtp, via_options: { address: 'localhost', port: 1025 }
         end
         Pony.mail MAIL_SETTINGS
+        update_log_file! to: { start_time, error_messages, statuses }
         update_emailed_status! to: statuses
         add_to_sent_messages! hash
       end
@@ -128,6 +130,12 @@ module Bojangles
 
   def update_emailed_status!(to:)
     File.open 'emailed_status.json', 'w' do |file|
+      file.puts to.to_json
+    end
+  end
+
+  def update_log_file!(to:)
+    File.open (File.join log, "#{todays_date}.json"), 'w' do |file|
       file.puts to.to_json
     end
   end
