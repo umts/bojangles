@@ -84,10 +84,12 @@ module Bojangles
           MAIL_SETTINGS.merge! via: :smtp, via_options: { address: 'localhost', port: 1025 }
         end
         Pony.mail MAIL_SETTINGS
-        update_log_file! to: { start_time, error_messages, statuses }
         update_emailed_status! to: statuses
         add_to_sent_messages! hash
       end
+    else 
+      end_time = Time.now
+      update_log_file! to: { start_time, end_time, error_messages, statuses }
     end
   end
 
