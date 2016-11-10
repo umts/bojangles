@@ -89,7 +89,7 @@ module Bojangles
       end
     else 
       end_time = Time.now
-      update_log_file! to: { start_time, end_time, error_messages, statuses }
+      update_log_file! to: { start_time: start_time, end_time: end_time, error_messages: error_messages, statuses: statuses }
     end
   end
 
