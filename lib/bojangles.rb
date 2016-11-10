@@ -137,7 +137,7 @@ module Bojangles
   end
 
   def update_log_file!(to:)
-    File.open (File.join log, "#{todays_date}.json"), 'w' do |file|
+    File.open File.join(LOG, "#{todays_date}.json"), 'w' do |file|
       file.puts to.to_json
     end
   end
