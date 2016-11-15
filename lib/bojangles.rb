@@ -79,6 +79,7 @@ module Bojangles
       hash = Digest::SHA256.digest message
       unless message_hash_already_sent?(hash)
         start_time = Time.now
+        # message instead of message_html(error_messages)
         MAIL_SETTINGS[:html_body] = message_html(error_messages)
         if CONFIG['environment'] == 'development'
           MAIL_SETTINGS.merge! via: :smtp, via_options: { address: 'localhost', port: 1025 }

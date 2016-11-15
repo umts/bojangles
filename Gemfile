@@ -6,3 +6,4 @@ gem 'pry-byebug', require: false
 gem 'rake'
 gem 'whenever'
 gem 'zipruby'
+gem 'rubocop'
