@@ -26,13 +26,6 @@ module Bojangles
 
   CACHED_ROUTES_FILE = 'route_mappings.json'.freeze
 
-  def add_to_sent_messages!(hash)
-    hashes = sent_message_hashes + [hash]
-    File.open 'message_hashes.json', 'w' do |file|
-      file.puts hashes
-    end
-  end
-
   # Cache the mapping from avail route ID to route number
   def cache_route_mappings!
     response = JSON.parse(Net::HTTP.get ROUTES_URI)
@@ -71,26 +64,33 @@ module Bojangles
     times
   end
 
+   # Cache the mapping from avail route ID to route number
+  def cache_error_messages!(current_errors)
+    File.open 'error_messages.json', 'w' do |file|
+      file.puts current_errors.to_json
+    end
+  end
+
+  # Fetch the cached error messages
+  def cached_error_messages
+    if File.file? 'error_messages.json'
+      JSON.parse File.read('error_messages.json')
+    else []
+    end
+  end
+
   def go!
     error_messages, statuses = DepartureComparator.compare
-
-    if error_messages.present?
-      message = message_html(error_messages)
-      hash = Digest::SHA256.digest message
-      unless message_hash_already_sent?(hash)
-        start_time = Time.now
-        # message instead of message_html(error_messages)
-        MAIL_SETTINGS[:html_body] = message_html(error_messages)
-        if CONFIG['environment'] == 'development'
-          MAIL_SETTINGS.merge! via: :smtp, via_options: { address: 'localhost', port: 1025 }
-        end
-        Pony.mail MAIL_SETTINGS
-        update_emailed_status! to: statuses
-        add_to_sent_messages! hash
+    current_time = Time.now
+    new_error_messages = error_messages - cached_error_messages
+    if new_error_messages.present?
+      MAIL_SETTINGS[:html_body] = message_html(new_error_messages)
+      if CONFIG['environment'] == 'development'
+        MAIL_SETTINGS.merge! via: :smtp, via_options: { address: 'localhost', port: 1025 }
       end
-    else 
-      end_time = Time.now
-      update_log_file! to: { start_time: start_time, end_time: end_time, error_messages: error_messages, statuses: statuses }
+      Pony.mail MAIL_SETTINGS
+      update_log_file! to: { current_time: current_time, error_messages: error_messages }
+      cache_error_messages!(error_messages)
     end
   end
 
@@ -115,31 +115,14 @@ module Bojangles
     [heading, list]
   end
 
-  def message_hash_already_sent?(hash)
-    sent_message_hashes.include? hash
-  end
-
-  def sent_message_hashes
-    if File.file? 'message_hashes.json'
-      JSON.parse File.read('message_hashes.json')
-    else []
-    end
-  end
-
   def parse_json_unix_timestamp(timestamp)
     matches = timestamp.match /\/Date\((\d+)000-0(4|5)00\)\//
     Time.at matches.captures.first.to_i
   end
 
-  def update_emailed_status!(to:)
-    File.open 'emailed_status.json', 'w' do |file|
-      file.puts to.to_json
-    end
-  end
-
   def update_log_file!(to:)
-    File.open File.join(LOG, "#{todays_date}.json"), 'w' do |file|
-      file.puts to.to_json
+    File.open File.join(LOG, "#{todays_date}.txt"), 'w' do |file|
+      file.puts to
     end
   end
 end
