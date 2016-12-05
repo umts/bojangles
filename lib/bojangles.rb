@@ -121,6 +121,7 @@ module Bojangles
   end
 
   def update_log_file!(to:)
+    FileUtils.mkdir_p LOG
     File.open File.join(LOG, "#{todays_date}.txt"), 'w' do |file|
       file.puts to
     end

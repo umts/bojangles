@@ -48,4 +48,14 @@ describe Bojangles do
       end
     end
   end
+  describe 'update_log_file' do
+    context 'with parameters' do
+      it 'updates the log file' do
+        filename = [LOG, "#{todays_date}.txt"].join '/'
+        Bojangles.update_log_file!(to: "abc")
+        expect(File.file? filename).to be true
+        expect(File.read filename).to include "abc"
+      end
+    end
+  end
 end
