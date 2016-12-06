@@ -79,4 +79,21 @@ describe Bojangles do
       end
     end
   end
+  describe 'cache_error_messages!' do
+    context 'with one error message' do
+      it 'adds error in json to error messages file' do
+        Bojangles.cache_error_messages!(['error_message'])
+        expect(File.file? 'error_messages.json').to be true
+        expect(File.read 'error_messages.json').to include "error_message".to_json
+      end
+    end
+    context 'with multiple error messages' do
+      it 'adds errors in json to error messages file' do
+        Bojangles.cache_error_messages!(['error1', 'error2'])
+        expect(File.file? 'error_messages.json').to be true
+        expect(File.read 'error_messages.json').to include "error1".to_json
+        expect(File.read 'error_messages.json').to include "error2".to_json
+      end
+    end
+  end
 end
