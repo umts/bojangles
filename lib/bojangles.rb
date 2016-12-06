@@ -83,14 +83,18 @@ module Bojangles
     error_messages, statuses = DepartureComparator.compare
     current_time = Time.now
     new_error_messages = error_messages - cached_error_messages
+    resolved_error_messages = cached_error_messages - error_messages
     if new_error_messages.present?
       MAIL_SETTINGS[:html_body] = message_html(new_error_messages)
       if CONFIG['environment'] == 'development'
         MAIL_SETTINGS.merge! via: :smtp, via_options: { address: 'localhost', port: 1025 }
       end
       Pony.mail MAIL_SETTINGS
-      update_log_file! to: { current_time: current_time, error_messages: error_messages }
-      cache_error_messages!(error_messages)
+      update_log_file! to: { current_time: current_time, new_errors: new_error_messages }
+      cache_error_messages!(new_error_messages)
+    end
+    if resolved_error_messages.present?
+      update_log_file! to: { current_time: current_time, errors_resolved: resolved_error_messages }
     end
   end
 
