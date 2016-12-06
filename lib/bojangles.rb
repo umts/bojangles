@@ -126,8 +126,8 @@ module Bojangles
 
   def update_log_file!(to:)
     FileUtils.mkdir_p LOG
-    File.open File.join(LOG, "#{todays_date}.txt"), 'w' do |file|
-      time = ["[" + to[:current_time].strftime('%h %d %Y %R') + "]"]
+    File.open File.join(LOG, "#{todays_date}.txt"), 'a' do |file|
+      time = ['[' + to[:current_time].strftime('%h %d %Y %R') + ']']
       to.delete(:current_time)
       errors = to.map{|k, v| "#{k}".humanize + ": \"#{v}\"" }
       file.puts (time + errors).join(' ')
