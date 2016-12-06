@@ -64,7 +64,7 @@ module Bojangles
     times
   end
 
-   # Cache the mapping from avail route ID to route number
+   # Cache the error messages
   def cache_error_messages!(current_errors)
     File.open 'error_messages.json', 'w' do |file|
       file.puts current_errors.to_json
