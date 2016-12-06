@@ -131,7 +131,9 @@ module Bojangles
       to.delete(:current_time)
       to.keys.each do |error_type|
         to[error_type].each do |error_message|
-          file.puts time + ' ' + "#{error_type}".humanize + ": \""  + error_message + "\""
+          file.puts <<-LOG_ENTRY
+#{time} #{"#{error_type}".humanize}: "#{error_message}"
+          LOG_ENTRY
         end
       end
     end
