@@ -49,12 +49,33 @@ describe Bojangles do
     end
   end
   describe 'update_log_file' do
-    context 'with parameters' do
-      it 'updates the log file' do
+    context 'with one new_error' do
+      it 'updates log file with one error' do
         filename = [LOG, "#{todays_date}.txt"].join '/'
-        Bojangles.update_log_file!(to: "abc")
+        Bojangles.update_log_file!(to: { new_error: ['error_message'], current_time: Time.now })
         expect(File.file? filename).to be true
-        expect(File.read filename).to include "abc"
+        expect(File.read filename).to include "New error: \"error_message\""
+      end
+    end
+    context 'with one error_resolved' do
+      it 'updates log file with one error' do
+        filename = [LOG, "#{todays_date}.txt"].join '/'
+        Bojangles.update_log_file!(to: { error_resolved: ['error_message'], current_time: Time.now + 1.hour })
+        expect(File.file? filename).to be true
+        expect(File.read filename).to include "New error: \"error_message\""
+        expect(File.read filename).to include "Error resolved: \"error_message\""
+      end
+    end
+    context 'with multiple errors' do
+      it 'updates log file with errors' do
+        filename = [LOG, "#{todays_date}.txt"].join '/'
+        Bojangles.update_log_file!(to: { new_error: ['error1', 'error2'], current_time: Time.now })
+        Bojangles.update_log_file!(to: { error_resolved: ['error3', 'error4'], current_time: Time.now + 1.hour })
+        expect(File.file? filename).to be true
+        expect(File.read filename).to include "New error: \"error1\""
+        expect(File.read filename).to include "New error: \"error2\""
+        expect(File.read filename).to include "Error resolved: \"error3\""
+        expect(File.read filename).to include "Error resolved: \"error3\""
       end
     end
   end
