@@ -79,6 +79,21 @@ describe Bojangles do
       end
     end
   end
+  describe 'cached_error_messages' do
+    context 'without an error messages file' do
+      it 'returns an empty array' do
+        expect(File.file? 'error_messages.json').to be false
+        expect(Bojangles.cached_error_messages).to eql []
+      end
+    end
+    context 'with an error messages file' do
+      it 'returns the error messages in the file' do
+        Bojangles.cache_error_messages!(['error_message'])
+        expect(File.file? 'error_messages.json').to be true
+        expect(Bojangles.cached_error_messages).to include 'error_message'
+      end
+    end
+  end
   describe 'cache_error_messages!' do
     context 'with one error message' do
       it 'adds error in json to error messages file' do
