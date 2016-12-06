@@ -90,11 +90,11 @@ module Bojangles
         MAIL_SETTINGS.merge! via: :smtp, via_options: { address: 'localhost', port: 1025 }
       end
       Pony.mail MAIL_SETTINGS
-      update_log_file! to: { current_time: current_time, new_errors: new_error_messages }
+      update_log_file! to: { current_time: current_time, new_error: new_error_messages }
       cache_error_messages!(new_error_messages)
     end
     if resolved_error_messages.present?
-      update_log_file! to: { current_time: current_time, errors_resolved: resolved_error_messages }
+      update_log_file! to: { current_time: current_time, error_resolved: resolved_error_messages }
     end
   end
 
@@ -127,10 +127,13 @@ module Bojangles
   def update_log_file!(to:)
     FileUtils.mkdir_p LOG
     File.open File.join(LOG, "#{todays_date}.txt"), 'a' do |file|
-      time = ['[' + to[:current_time].strftime('%h %d %Y %R') + ']']
+      time = '[' + to[:current_time].strftime('%h %d %Y %R') + ']'
       to.delete(:current_time)
-      errors = to.map{|k, v| "#{k}".humanize + ": \"#{v}\"" }
-      file.puts (time + errors).join(' ')
+      to.keys.each do |error_type|
+        to[error_type].each do |error_message|
+          file.puts time + ' ' + "#{error_type}".humanize + ": \""  + error_message + "\""
+        end
+      end
     end
   end
 end
