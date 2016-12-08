@@ -79,6 +79,42 @@ describe Bojangles do
       end
     end
   end
+  describe 'cached_route_mappings' do
+    before :each do
+      stub_request(:get, "http://bustracker.pvta.com/InfoPoint/rest/routes/getvisibleroutes").
+         with(:headers => {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host'=>'bustracker.pvta.com', 'User-Agent'=>'Ruby'}).
+         to_return(:status => 200, :body => "", :headers => {})
+    end
+    context 'with bojangles daily task' do
+      it 'returns the cached route mappings' do
+        Bojangles.stub(:cache_route_mappings!){
+          routes = [{ShortName: 'bus', RouteId: 9}, {ShortName: 'van', RouteId: 10}]
+          File.open CACHED_ROUTES_FILE, 'w' do |file|
+            file.puts routes.to_json
+          end
+        }
+        Bojangles.cache_route_mappings!
+        expect(Bojangles.cached_route_mappings).to include {"\"10\" => \"van\""}
+        expect(Bojangles.cached_route_mappings).to include {"\"9\" => \"bus\""}
+      end
+    end
+  end
+  describe 'cache_route_mappings!' do
+    before :each do
+      routes = [{ShortName: 'bus', RouteId: 9}, {ShortName: 'van', RouteId: 10}].to_json
+      stub_request(:get, "http://bustracker.pvta.com/InfoPoint/rest/routes/getvisibleroutes").
+         with(:headers => {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host'=>'bustracker.pvta.com', 'User-Agent'=>'Ruby'}).
+         to_return(:status => 200, :body => routes, :headers => {})
+      web_address = 'http://bustracker.pvta.com/InfoPoint/rest/routes/getvisibleroutes'
+    end
+    context 'with routes' do
+      it 'creates a file of json routes' do
+        Bojangles.cache_route_mappings!
+        expect(File.file? 'route_mappings.json').to be true
+        expect(File.read 'route_mappings.json').to include 'bus'
+      end
+    end
+  end
   describe 'cached_error_messages' do
     context 'without an error messages file' do
       it 'returns an empty array' do
@@ -88,7 +124,12 @@ describe Bojangles do
     end
     context 'with an error messages file' do
       it 'returns the error messages in the file' do
-        Bojangles.cache_error_messages!(['error_message'])
+        Bojangles.stub(:cache_error_messages!){
+          File.open 'error_messages.json', 'w' do |file|
+            file.puts ['error_message'].to_json
+          end
+        }
+        Bojangles.cache_error_messages!
         expect(File.file? 'error_messages.json').to be true
         expect(Bojangles.cached_error_messages).to include 'error_message'
       end
@@ -99,15 +140,15 @@ describe Bojangles do
       it 'adds error in json to error messages file' do
         Bojangles.cache_error_messages!(['error_message'])
         expect(File.file? 'error_messages.json').to be true
-        expect(File.read 'error_messages.json').to include "error_message".to_json
+        expect(File.read 'error_messages.json').to include 'error_message'
       end
     end
     context 'with multiple error messages' do
       it 'adds errors in json to error messages file' do
         Bojangles.cache_error_messages!(['error1', 'error2'])
         expect(File.file? 'error_messages.json').to be true
-        expect(File.read 'error_messages.json').to include "error1".to_json
-        expect(File.read 'error_messages.json').to include "error2".to_json
+        expect(File.read 'error_messages.json').to include 'error1'
+        expect(File.read 'error_messages.json').to include 'error2'
       end
     end
   end
