@@ -149,17 +149,17 @@ describe Bojangles do
           cached_routes = {"20030" => "30", "20010" => "10"}
         }
         Bojangles.stub(:parse_json_unix_timestamp){
-          '14:00'
+          '2016-12-12 14:00:00 -0500'
         }
-        dept1 = {SDT: '13:00', Trip: { InternetServiceDesc: 'Garage'}}
+        dept1 = {SDT: '13:00', Trip: {InternetServiceDesc: 'Garage'}}
         dept2 = {SDT: '12:00', Trip: {InternetServiceDesc: 'CompSci'}}
-        route_directions = [{RouteDirections: [{ShortName: 30, RouteId: 20030, Departures: [dept1]}, {ShortName: 10, RouteId: 20010, Departures: [dept2]}]}].to_json
+        route_directions = [{RouteDirections: [{ShortName: 30, RouteId: 20030, Departures: [dept1], ShortName: 10, RouteId: 20010, Departures: [dept2]}]}].to_json
         stub_request(:get, "http://bustracker.pvta.com/InfoPoint/rest/stopdepartures/get/72").
           with(:headers => {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host'=>'bustracker.pvta.com', 'User-Agent'=>'Ruby'}).
           to_return(:status => 200, :body => route_directions, :headers => {})
         Bojangles.cache_route_mappings!
         expect(Bojangles.get_avail_departure_times!).is_a? Hash
-        expect(Bojangles.get_avail_departure_times!).not_to be_empty
+        expect(Bojangles.get_avail_departure_times!).to include ["10", "CompSci"] => '2016-12-12 14:00:00 -0500'
       end
     end
     context 'without departures' do
@@ -171,7 +171,7 @@ describe Bojangles do
           end
         }
         Bojangles.cache_route_mappings!
-        route_directions = [{RouteDirections: [{ShortName: 30, RouteId: 20030, Departures: []}, {ShortName: 10, RouteId: 20010, Departures: []}]}].to_json
+        route_directions = [{RouteDirections: [{ShortName: 30, RouteId: 20030, Departures: [], ShortName: 10, RouteId: 20010, Departures: []}]}].to_json
         stub_request(:get, "http://bustracker.pvta.com/InfoPoint/rest/stopdepartures/get/72").
           with(:headers => {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host'=>'bustracker.pvta.com', 'User-Agent'=>'Ruby'}).
           to_return(:status => 200, :body => route_directions, :headers => {})
@@ -195,6 +195,14 @@ describe Bojangles do
         expect(File.file? 'error_messages.json').to be true
         expect(File.read 'error_messages.json').to include 'error1'
         expect(File.read 'error_messages.json').to include 'error2'
+      end
+    end
+    describe 'parse_json_unix_timestamp' do
+      context 'correctly formatted timestamp' do
+        it 'returns the time' do
+          timestamp = "/Date(1481569200000-0500)/"
+          expect(Bojangles.parse_json_unix_timestamp(timestamp).to_s).to eql "2016-12-12 14:00:00 -0500"
+        end
       end
     end
   end
