@@ -62,6 +62,7 @@ describe Bojangles do
         filename = [LOG, "#{todays_date}.txt"].join '/'
         Bojangles.update_log_file!(to: { error_resolved: ['error_message'], current_time: Time.now + 1.hour })
         expect(File.file? filename).to be true
+        # File isn't overwritten with each update. Previous entries are still there.
         expect(File.read filename).to include "New error: \"error_message\""
         expect(File.read filename).to include "Error resolved: \"error_message\""
       end
@@ -88,20 +89,20 @@ describe Bojangles do
     context 'with bojangles daily task' do
       it 'returns the cached route mappings' do
         Bojangles.stub(:cache_route_mappings!){
-          routes = [{ShortName: 'bus', RouteId: 9}, {ShortName: 'van', RouteId: 10}]
+          routes = {ShortName: 30, RouteId: 20030, ShortName: 10, RouteId: 20010}
           File.open CACHED_ROUTES_FILE, 'w' do |file|
             file.puts routes.to_json
           end
         }
         Bojangles.cache_route_mappings!
-        expect(Bojangles.cached_route_mappings).to include {"\"10\" => \"van\""}
-        expect(Bojangles.cached_route_mappings).to include {"\"9\" => \"bus\""}
+        expect(Bojangles.cached_route_mappings).to include {"\"20030\" => \"30\""}
+        expect(Bojangles.cached_route_mappings).to include {"\"20010\" => \"10\""}
       end
     end
   end
   describe 'cache_route_mappings!' do
     before :each do
-      routes = [{ShortName: 'bus', RouteId: 9}, {ShortName: 'van', RouteId: 10}].to_json
+      routes = [{ShortName: 30, RouteId: 20030, ShortName: 10, RouteId: 20010}].to_json
       stub_request(:get, "http://bustracker.pvta.com/InfoPoint/rest/routes/getvisibleroutes").
          with(:headers => {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host'=>'bustracker.pvta.com', 'User-Agent'=>'Ruby'}).
          to_return(:status => 200, :body => routes, :headers => {})
@@ -111,7 +112,7 @@ describe Bojangles do
       it 'creates a file of json routes' do
         Bojangles.cache_route_mappings!
         expect(File.file? 'route_mappings.json').to be true
-        expect(File.read 'route_mappings.json').to include 'bus'
+        expect(File.read 'route_mappings.json').to include {"\"20030\" => \"30\""}
       end
     end
   end
@@ -132,6 +133,53 @@ describe Bojangles do
         Bojangles.cache_error_messages!
         expect(File.file? 'error_messages.json').to be true
         expect(Bojangles.cached_error_messages).to include 'error_message'
+      end
+    end
+  end
+  describe 'get_avail_departure_times' do
+    context 'with departures' do
+      it 'returns the hash mapping route number and headsign to the provided time' do
+        Bojangles.stub(:cache_route_mappings!){
+          routes = {ShortName: 30, RouteId: 20030, ShortName: 10, RouteId: 20010}
+          File.open CACHED_ROUTES_FILE, 'w' do |file|
+            file.puts routes.to_json
+          end
+        }
+        Bojangles.stub(:cached_route_mappings){
+          cached_routes = {"20030" => "30", "20010" => "10"}
+        }
+        Bojangles.stub(:parse_json_unix_timestamp){
+          '14:00'
+        }
+        dept1 = {SDT: '13:00', Trip: { InternetServiceDesc: 'Garage'}}
+        dept2 = {SDT: '12:00', Trip: {InternetServiceDesc: 'CompSci'}}
+        # is this also wrong?
+        route_directions = [{RouteDirections: [{ShortName: 30, RouteId: 20030, Departures: [dept1]}, {ShortName: 10, RouteId: 20010, Departures: [dept2]}]}].to_json
+        stub_request(:get, "http://bustracker.pvta.com/InfoPoint/rest/stopdepartures/get/72").
+          with(:headers => {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host'=>'bustracker.pvta.com', 'User-Agent'=>'Ruby'}).
+          to_return(:status => 200, :body => route_directions, :headers => {})
+        Bojangles.cache_route_mappings!
+        expect(Bojangles.get_avail_departure_times!).is_a? Hash
+        expect(Bojangles.get_avail_departure_times!).not_to be_empty
+      end
+    end
+    context 'without departures' do
+      it 'returns an empty hash' do
+        Bojangles.stub(:cache_route_mappings!){
+          routes = {ShortName: 30, RouteId: 20030, ShortName: 10, RouteId: 20010}
+          File.open CACHED_ROUTES_FILE, 'w' do |file|
+            file.puts routes.to_json
+          end
+        }
+        Bojangles.cache_route_mappings!
+        # is this also wrong?
+        route_directions = [{RouteDirections: [{ShortName: 30, RouteId: 20030, Departures: []}, {ShortName: 10, RouteId: 20010, Departures: []}]}].to_json
+        stub_request(:get, "http://bustracker.pvta.com/InfoPoint/rest/stopdepartures/get/72").
+          with(:headers => {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host'=>'bustracker.pvta.com', 'User-Agent'=>'Ruby'}).
+          to_return(:status => 200, :body => route_directions, :headers => {})
+        # Can't say it eqls {}.
+        expect(Bojangles.get_avail_departure_times!).is_a? Hash
+        expect(Bojangles.get_avail_departure_times!).to be_empty
       end
     end
   end
