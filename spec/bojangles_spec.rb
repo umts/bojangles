@@ -153,7 +153,6 @@ describe Bojangles do
         }
         dept1 = {SDT: '13:00', Trip: { InternetServiceDesc: 'Garage'}}
         dept2 = {SDT: '12:00', Trip: {InternetServiceDesc: 'CompSci'}}
-        # is this also wrong?
         route_directions = [{RouteDirections: [{ShortName: 30, RouteId: 20030, Departures: [dept1]}, {ShortName: 10, RouteId: 20010, Departures: [dept2]}]}].to_json
         stub_request(:get, "http://bustracker.pvta.com/InfoPoint/rest/stopdepartures/get/72").
           with(:headers => {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host'=>'bustracker.pvta.com', 'User-Agent'=>'Ruby'}).
@@ -172,7 +171,6 @@ describe Bojangles do
           end
         }
         Bojangles.cache_route_mappings!
-        # is this also wrong?
         route_directions = [{RouteDirections: [{ShortName: 30, RouteId: 20030, Departures: []}, {ShortName: 10, RouteId: 20010, Departures: []}]}].to_json
         stub_request(:get, "http://bustracker.pvta.com/InfoPoint/rest/stopdepartures/get/72").
           with(:headers => {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host'=>'bustracker.pvta.com', 'User-Agent'=>'Ruby'}).
