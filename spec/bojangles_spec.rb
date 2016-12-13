@@ -197,12 +197,12 @@ describe Bojangles do
         expect(File.read 'error_messages.json').to include 'error2'
       end
     end
-    describe 'parse_json_unix_timestamp' do
-      context 'correctly formatted timestamp' do
-        it 'returns the time' do
-          timestamp = "/Date(1481569200000-0500)/"
-          expect(Bojangles.parse_json_unix_timestamp(timestamp).to_s).to eql "2016-12-12 14:00:00 -0500"
-        end
+  end
+  describe 'parse_json_unix_timestamp' do
+    context 'correctly formatted timestamp' do
+      it 'returns the time' do
+        timestamp = "/Date(1481569200000-0500)/"
+        expect(Bojangles.parse_json_unix_timestamp(timestamp).to_s).to eql "2016-12-12 14:00:00 -0500"
       end
     end
   end
