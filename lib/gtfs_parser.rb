@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'csv'
 require 'fileutils'
 require 'json'
@@ -6,11 +7,11 @@ require 'zipruby'
 
 module GtfsParser
   LOCAL_GTFS_DIR = File.expand_path('../../gtfs/', __FILE__)
-  STOP_NAME = 'Studio Arts Building'.freeze
-  CACHE_FILE = 'cached_departures.json'.freeze
-  GTFS_PROTOCOL = 'http://'.freeze
-  GTFS_HOST = 'pvta.com'.freeze
-  GTFS_PATH = '/g_trans/google_transit.zip'.freeze
+  STOP_NAME = 'Studio Arts Building'
+  CACHE_FILE = 'cached_departures.json'
+  GTFS_PROTOCOL = 'http://'
+  GTFS_HOST = 'pvta.com'
+  GTFS_PATH = '/g_trans/google_transit.zip'
   LOG = File.expand_path('../../log', __FILE__)
 
   def prepare!
@@ -29,12 +30,11 @@ module GtfsParser
     departure_times = {}
     cached_departures.each do |(route_number, direction_id, headsign), times|
       next_time = times.find { |time| time_within? minutes, time }
-      if next_time
-        last_time = times[times.index(next_time) - 1] unless next_time == times.first
-        times_in_same_route_direction = departure_times[[route_number, direction_id]]
-        unless times_in_same_route_direction && times_in_same_route_direction.last < next_time
-          departure_times[[route_number, direction_id]] = [headsign, last_time, next_time]
-        end
+      next unless next_time
+      last_time = times[times.index(next_time) - 1] unless next_time == times.first
+      times_in_same_route_direction = departure_times[[route_number, direction_id]]
+      unless times_in_same_route_direction && times_in_same_route_direction.last < next_time
+        departure_times[[route_number, direction_id]] = [headsign, last_time, next_time]
       end
     end
     departure_times
@@ -65,7 +65,7 @@ module GtfsParser
         end
       end
     end
-  end 
+  end
 
   # Retrieves the cached departures.
   def cached_departures
@@ -103,9 +103,7 @@ module GtfsParser
         if row.fetch(weekday) == '1' # that is to say, if the service type runs today
           start_date = Date.parse row.fetch('start_date')
           end_date = Date.parse row.fetch('end_date')
-          if (start_date..end_date).cover?(Date.today)
-            entries << service_id
-          end
+          entries << service_id if (start_date..end_date).cover?(Date.today)
         end
       end
     end
@@ -150,9 +148,10 @@ module GtfsParser
     stop_id = find_stop_id
     trips = find_trips_operating_today
     # Track the indices so that for each row, we can always include the row after it.
-    rows, indices = [], []
+    rows = []
+    indices = []
     CSV.foreach(filename, headers: true).with_index do |row, index|
-      rows << row and next if indices.map(&:succ).include? index # If the previous row has been saved
+      rows << row && next if indices.map(&:succ).include? index # If the previous row has been saved
       trip_id = row.fetch 'trip_id'
       if trips.key? trip_id
         if row.fetch('stop_id') == stop_id
@@ -203,7 +202,7 @@ module GtfsParser
   def parse_time(time)
     hour, minute = time.split(':').map(&:to_i)
     date = Date.today
-    hour -= 24 and date += 1 if hour >= 24
+    (hour -= 24) && (date += 1) if hour >= 24
     Time.local date.year, date.month, date.day, hour, minute
   end
 

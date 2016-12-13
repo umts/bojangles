@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'active_support/core_ext/string/strip'
 
 require_relative 'gtfs_parser'
@@ -6,7 +7,6 @@ include GtfsParser
 # DepartureComparator compares the scheduled departures from the GTFS data and
 # the departures obtained from the realtime feed.
 module DepartureComparator
-
   # How many hours in the future can we expect the realtime feed to return
   # departures on a given route?
   DEPARTURE_FUTURE_HOURS = 3
@@ -74,5 +74,4 @@ module DepartureComparator
     message
     @statuses[:incorrect_times] << route_number
   end
-
 end
