@@ -64,9 +64,11 @@ describe Bojangles do
         filename = [LOG, "#{todays_date}.txt"].join '/'
         Bojangles.update_log_file!(to: { error_resolved: ['error_message'], current_time: Time.now + 1.hour })
         expect(File.file?(filename)).to be true
+        
         # File isn't overwritten with each update. Previous entries are still there.
-        expect(File.read(filename)).to include 'New error: "error_message"'
-        expect(File.read(filename)).to include 'Error resolved: "error_message"'
+        result = File.read(filename)
+        expect(result).to include 'New error: "error_message"'
+        expect(result).to include 'Error resolved: "error_message"'
       end
     end
     context 'with multiple errors' do
@@ -75,10 +77,12 @@ describe Bojangles do
         Bojangles.update_log_file!(to: { new_error: %w(error1 error2), current_time: Time.now })
         Bojangles.update_log_file!(to: { error_resolved: %w(error3 error4), current_time: Time.now + 1.hour })
         expect(File.file?(filename)).to be true
-        expect(File.read(filename)).to include 'New error: "error1"'
-        expect(File.read(filename)).to include 'New error: "error2"'
-        expect(File.read(filename)).to include 'Error resolved: "error3"'
-        expect(File.read(filename)).to include 'Error resolved: "error3"'
+
+        result = File.read(filename)
+        expect(result).to include 'New error: "error1"'
+        expect(result).to include 'New error: "error2"'
+        expect(result).to include 'Error resolved: "error3"'
+        expect(result).to include 'Error resolved: "error3"'
       end
     end
   end
@@ -97,8 +101,9 @@ describe Bojangles do
           end
         end
         Bojangles.cache_route_mappings!
-        expect(Bojangles.cached_route_mappings).to include { '"20030" => "30"' }
-        expect(Bojangles.cached_route_mappings).to include { '"20010" => "10"' }
+        result = Bojangles.cached_route_mappings
+        expect(result).to include { '"20030" => "30"' }
+        expect(result).to include { '"20010" => "10"' }
       end
     end
   end
@@ -160,9 +165,11 @@ describe Bojangles do
           .with(headers: { 'Accept' => '*/*', 'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host' => 'bustracker.pvta.com', 'User-Agent' => 'Ruby' })
           .to_return(status: 200, body: route_directions, headers: {})
         Bojangles.cache_route_mappings!
-        expect(Bojangles.get_avail_departure_times!).is_a? Hash
-        expect(Bojangles.get_avail_departure_times!).to include %w(10 CompSci) => '2016-12-12 14:00:00 -0500'
-        expect(Bojangles.get_avail_departure_times!).to include %w(30 Garage) => '2016-12-12 14:00:00 -0500'
+
+        result = Bojangles.get_avail_departure_times!
+        expect(result).is_a? Hash
+        expect(result).to include %w(10 CompSci) => '2016-12-12 14:00:00 -0500'
+        expect(result).to include %w(30 Garage) => '2016-12-12 14:00:00 -0500'
       end
     end
     context 'without departures' do
@@ -178,9 +185,11 @@ describe Bojangles do
         stub_request(:get, 'http://bustracker.pvta.com/InfoPoint/rest/stopdepartures/get/72')
           .with(headers: { 'Accept' => '*/*', 'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host' => 'bustracker.pvta.com', 'User-Agent' => 'Ruby' })
           .to_return(status: 200, body: route_directions, headers: {})
+        
         # Can't say it eqls {}.
-        expect(Bojangles.get_avail_departure_times!).is_a? Hash
-        expect(Bojangles.get_avail_departure_times!).to be_empty
+        result = Bojangles.get_avail_departure_times!
+        expect(result).is_a? Hash
+        expect(result).to be_empty
       end
     end
   end
@@ -196,8 +205,10 @@ describe Bojangles do
       it 'adds errors in json to error messages file' do
         Bojangles.cache_error_messages!(%w(error1 error2))
         expect(File.file?('error_messages.json')).to be true
-        expect(File.read('error_messages.json')).to include 'error1'
-        expect(File.read('error_messages.json')).to include 'error2'
+
+        result = File.read('error_messages.json')
+        expect(result).to include 'error1'
+        expect(result).to include 'error2'
       end
     end
   end
