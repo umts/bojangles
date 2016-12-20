@@ -22,7 +22,7 @@ describe DepartureComparator do
   end
   describe 'report_feed_down' do
     context 'with previous messages' do
-      it 'changes feed_down status and adds to messages array' do
+      it 'adds feed_down to statuses and messages' do
         message =  "The realtime feed is inaccessible via HTTP.\n"
         
         report_feed_down
@@ -33,7 +33,7 @@ describe DepartureComparator do
   end
   describe 'report_missing_route' do
     context 'with parameters of route_number, headsign, gtfs_time' do
-      it 'adds to missing_routes status and adds to messages array' do
+      it 'adds missing_routes to statuses and messages' do
         route_and_headsign = "Route #{@route_number} with headsign #{@headsign} is missing:"
         expected_departure = "Expected to be departing from Studio Arts Building"
         expected_time = "Expected scheduled departure time #{email_format @gtfs_time}"
@@ -48,7 +48,7 @@ describe DepartureComparator do
   end
   describe 'report_incorrect_departure' do
     context 'with parameters of route_number, headsign, gtfs_time, avail_time, type' do
-      it 'adds to incorrect_times and adds to messages array' do
+      it 'adds incorrect_departure to statuses and messages' do
         route_and_headsign = "Incorrect route #{@route_number} departure with headsign #{@headsign}:"
         type = "Saw #{@type} departure time,"
         expected_time = "expected to be #{email_format @gtfs_time};"
