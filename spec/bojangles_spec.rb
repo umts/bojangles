@@ -232,7 +232,7 @@ describe Bojangles do
   end
   describe 'message_list' do
     context 'with error messages' do
-      it 'create a message_list' do
+      it 'creates a message_list of given heading and error messages' do
         heading = 'Bojangles has noticed the following errors:'
         result = Bojangles.message_list(%w(error1 error2))
         expect(result.first).to include heading
