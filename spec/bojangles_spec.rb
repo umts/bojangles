@@ -12,7 +12,7 @@ describe Bojangles do
       Pony.stub(:deliver)
     end
     context 'with new error messages' do
-      it 'sends an email, updates the log, and caches error messages' do
+      it 'updates the log and caches error messages' do
         DepartureComparator.stub(:compare) do
           [['error'],
            { feed_down: false, missing_routes: [39], incorrect_times: [39] }]
@@ -64,7 +64,7 @@ describe Bojangles do
         filename = [LOG, "#{todays_date}.txt"].join '/'
         Bojangles.update_log_file!(to: { error_resolved: ['error_message'], current_time: Time.now + 1.hour })
         expect(File.file?(filename)).to be true
-        
+
         # File isn't overwritten with each update. Previous entries are still there.
         result = File.read(filename)
         expect(result).to include 'New error: "error_message"'
@@ -185,8 +185,7 @@ describe Bojangles do
         stub_request(:get, 'http://bustracker.pvta.com/InfoPoint/rest/stopdepartures/get/72')
           .with(headers: { 'Accept' => '*/*', 'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host' => 'bustracker.pvta.com', 'User-Agent' => 'Ruby' })
           .to_return(status: 200, body: route_directions, headers: {})
-        
-        # Can't say it eqls {}.
+
         result = Bojangles.get_avail_departure_times!
         expect(result).is_a? Hash
         expect(result).to be_empty
@@ -217,6 +216,28 @@ describe Bojangles do
       it 'returns the time' do
         timestamp = '/Date(1481569200000-0500)/'
         expect(Bojangles.parse_json_unix_timestamp(timestamp).to_s).to eql '2016-12-12 14:00:00 -0500'
+      end
+    end
+  end
+  describe 'message_html' do
+    context 'with error messages' do
+      it 'creates a message' do
+        Bojangles.stub(:message_list) do
+          'error message list'
+        end
+        message = "This message brought to you by Bojangles, UMass Transit's monitoring service for the PVTA realtime bus departures feed."
+        expect(Bojangles.message_html(%w(error1 error2))).to include message + '<br>' + Bojangles.message_list
+      end
+    end
+  end
+  describe 'message_list' do
+    context 'with error messages' do
+      it 'create a message_list' do
+        heading = 'Bojangles has noticed the following errors:'
+        result = Bojangles.message_list(%w(error1 error2))
+        expect(result.first).to include heading
+        expect(result.last).to include 'error1'
+        expect(result.last).to include 'error2'
       end
     end
   end
