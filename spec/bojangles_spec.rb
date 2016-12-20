@@ -54,7 +54,8 @@ describe Bojangles do
     context 'with one new_error' do
       it 'updates log file with one error' do
         filename = [LOG, "#{todays_date}.txt"].join '/'
-        Bojangles.update_log_file!(to: { new_error: ['error_message'], current_time: Time.now })
+        Bojangles.update_log_file!(to: { new_error: ['error_message'],
+                                         current_time: Time.now })
         expect(File.file?(filename)).to be true
         expect(File.read(filename)).to include 'New error: "error_message"'
       end
@@ -62,7 +63,8 @@ describe Bojangles do
     context 'with one error_resolved' do
       it 'updates log file with one error' do
         filename = [LOG, "#{todays_date}.txt"].join '/'
-        Bojangles.update_log_file!(to: { error_resolved: ['error_message'], current_time: Time.now + 1.hour })
+        Bojangles.update_log_file!(to: { error_resolved: ['error_message'],
+                                         current_time: Time.now + 1.hour })
         expect(File.file?(filename)).to be true
 
         # File isn't overwritten with each update. Previous entries are still there.
@@ -74,8 +76,10 @@ describe Bojangles do
     context 'with multiple errors' do
       it 'updates log file with errors' do
         filename = [LOG, "#{todays_date}.txt"].join '/'
-        Bojangles.update_log_file!(to: { new_error: %w(error1 error2), current_time: Time.now })
-        Bojangles.update_log_file!(to: { error_resolved: %w(error3 error4), current_time: Time.now + 1.hour })
+        Bojangles.update_log_file!(to: { new_error: %w(error1 error2),
+                                         current_time: Time.now })
+        Bojangles.update_log_file!(to: { error_resolved: %w(error3 error4),
+                                         current_time: Time.now + 1.hour })
         expect(File.file?(filename)).to be true
 
         result = File.read(filename)
@@ -95,7 +99,8 @@ describe Bojangles do
     context 'with bojangles daily task' do
       it 'returns the cached route mappings' do
         Bojangles.stub(:cache_route_mappings!) do
-          routes = { ShortName: 30, RouteId: 20_030, ShortName: 10, RouteId: 20_010 }
+          routes = { ShortName: 30, RouteId: 20_030,
+                     ShortName: 10, RouteId: 20_010 }
           File.open CACHED_ROUTES_FILE, 'w' do |file|
             file.puts routes.to_json
           end
@@ -109,7 +114,8 @@ describe Bojangles do
   end
   describe 'cache_route_mappings!' do
     before :each do
-      routes = [{ ShortName: 30, RouteId: 20_030, ShortName: 10, RouteId: 20_010 }].to_json
+      routes = [{ ShortName: 30, RouteId: 20_030,
+                  ShortName: 10, RouteId: 20_010 }].to_json
       stub_request(:get, 'http://bustracker.pvta.com/InfoPoint/rest/routes/getvisibleroutes')
         .with(headers: { 'Accept' => '*/*', 'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host' => 'bustracker.pvta.com', 'User-Agent' => 'Ruby' })
         .to_return(status: 200, body: routes, headers: {})
@@ -147,20 +153,23 @@ describe Bojangles do
     context 'with departures' do
       it 'returns the hash mapping route number and headsign to the provided time' do
         Bojangles.stub(:cache_route_mappings!) do
-          routes = { ShortName: 30, RouteId: 20_030, ShortName: 10, RouteId: 20_010 }
+          routes = { ShortName: 30, RouteId: 20_030,
+                     ShortName: 10, RouteId: 20_010 }
           File.open CACHED_ROUTES_FILE, 'w' do |file|
             file.puts routes.to_json
           end
         end
         Bojangles.stub(:cached_route_mappings) do
-          cached_routes = { '20030' => '30', '20010' => '10' }
+          { '20030' => '30', '20010' => '10' }
         end
         Bojangles.stub(:parse_json_unix_timestamp) do
           '2016-12-12 14:00:00 -0500'
         end
         dept1 = { SDT: '13:00', Trip: { InternetServiceDesc: 'Garage' } }
         dept2 = { SDT: '12:00', Trip: { InternetServiceDesc: 'CompSci' } }
-        route_directions = [{ RouteDirections: [{ ShortName: 30, RouteId: 20_030, Departures: [dept1] }, { ShortName: 10, RouteId: 20_010, Departures: [dept2] }] }].to_json
+        route_directions = [{ RouteDirections:
+                            [{ ShortName: 30, RouteId: 20_030, Departures: [dept1] },
+                             { ShortName: 10, RouteId: 20_010, Departures: [dept2] }] }].to_json
         stub_request(:get, 'http://bustracker.pvta.com/InfoPoint/rest/stopdepartures/get/72')
           .with(headers: { 'Accept' => '*/*', 'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host' => 'bustracker.pvta.com', 'User-Agent' => 'Ruby' })
           .to_return(status: 200, body: route_directions, headers: {})
@@ -175,13 +184,16 @@ describe Bojangles do
     context 'without departures' do
       it 'returns an empty hash' do
         Bojangles.stub(:cache_route_mappings!) do
-          routes = { ShortName: 30, RouteId: 20_030, ShortName: 10, RouteId: 20_010 }
+          routes = { ShortName: 30, RouteId: 20_030,
+                     ShortName: 10, RouteId: 20_010 }
           File.open CACHED_ROUTES_FILE, 'w' do |file|
             file.puts routes.to_json
           end
         end
         Bojangles.cache_route_mappings!
-        route_directions = [{ RouteDirections: [{ ShortName: 30, RouteId: 20_030, Departures: [] }, { ShortName: 10, RouteId: 20_010, Departures: [] }] }].to_json
+        route_directions = [{ RouteDirections:
+                            [{ ShortName: 30, RouteId: 20_030, Departures: [] },
+                             { ShortName: 10, RouteId: 20_010, Departures: [] }] }].to_json
         stub_request(:get, 'http://bustracker.pvta.com/InfoPoint/rest/stopdepartures/get/72')
           .with(headers: { 'Accept' => '*/*', 'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host' => 'bustracker.pvta.com', 'User-Agent' => 'Ruby' })
           .to_return(status: 200, body: route_directions, headers: {})
@@ -215,7 +227,8 @@ describe Bojangles do
     context 'correctly formatted timestamp' do
       it 'returns the time' do
         timestamp = '/Date(1481569200000-0500)/'
-        expect(Bojangles.parse_json_unix_timestamp(timestamp).to_s).to eql '2016-12-12 14:00:00 -0500'
+        expect(Bojangles.parse_json_unix_timestamp(timestamp).to_s)
+          .to eql '2016-12-12 14:00:00 -0500'
       end
     end
   end
@@ -226,7 +239,8 @@ describe Bojangles do
           'error message list'
         end
         message = "This message brought to you by Bojangles, UMass Transit's monitoring service for the PVTA realtime bus departures feed."
-        expect(Bojangles.message_html(%w(error1 error2))).to include message + '<br>' + Bojangles.message_list
+        expect(Bojangles.message_html(%w(error1 error2)))
+          .to include message + '<br>' + Bojangles.message_list
       end
     end
   end
