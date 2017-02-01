@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 env :PATH, ENV['PATH']
 
 # Every minute, check for departure inaccuracies
