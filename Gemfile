@@ -8,3 +8,6 @@ gem 'rake'
 gem 'whenever'
 gem 'zipruby'
 gem 'rubocop'
+
+
+gem 'simplecov', require: false
