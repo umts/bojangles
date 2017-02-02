@@ -95,6 +95,12 @@ module Bojangles
       cache_error_messages!(new_error_messages)
     end
     if resolved_error_messages.present?
+      MAIL_SETTINGS[:html_body] = message_html(resolved_error_messages)
+      if CONFIG['environment'] == 'development'
+        MAIL_SETTINGS[:via] = :smtp
+        MAIL_SETTINGS[:via_options] = { address: 'localhost', port: 1025 }
+      end
+      Pony.mail MAIL_SETTINGS
       update_log_file! to: { current_time: current_time, error_resolved: resolved_error_messages }
     end
   end
