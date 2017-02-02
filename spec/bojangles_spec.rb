@@ -239,7 +239,7 @@ describe Bojangles do
           'error message list'
         end
         message = "This message brought to you by Bojangles, UMass Transit's monitoring service for the PVTA realtime bus departures feed."
-        expect(Bojangles.message_html(%w(error1 error2)), true)
+        expect(Bojangles.message_html(%w(error1 error2), true))
           .to include message + '<br>' + Bojangles.message_list
       end
     end

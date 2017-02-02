@@ -112,7 +112,11 @@ module Bojangles
   end
 
   def message_list(error_messages, current)
-    heading = 'Bojangles has noticed the following errors:'
+    if current == true
+      heading = 'Bojangles has noticed the following errors:'
+    else
+      heading = 'This error has been resolved:'
+    end
     list = '<ul>'
     error_messages.each do |error|
       list << '<li>'
