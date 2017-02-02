@@ -9,5 +9,6 @@ gem 'whenever'
 gem 'zipruby'
 gem 'rubocop'
 
-
-gem 'simplecov', require: false
+group :development, :test do
+  gem 'simplecov', require: false
+end
