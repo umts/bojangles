@@ -27,13 +27,6 @@ module Bojangles
 
   CACHED_ROUTES_FILE = 'route_mappings.json'
 
-  def add_to_sent_messages!(hash)
-    hashes = sent_message_hashes + [hash]
-    File.open 'message_hashes.json', 'w' do |file|
-      file.puts hashes
-    end
-  end
-
   # Cache the mapping from avail route ID to route number
   def cache_route_mappings!
     response = JSON.parse(Net::HTTP.get(ROUTES_URI))
@@ -125,17 +118,6 @@ module Bojangles
     end
     list << '</ul>'
     [heading, list]
-  end
-
-  def message_hash_already_sent?(hash)
-    sent_message_hashes.include? hash
-  end
-
-  def sent_message_hashes
-    if File.file? 'message_hashes.json'
-      JSON.parse File.read('message_hashes.json')
-    else []
-    end
   end
 
   def parse_json_unix_timestamp(timestamp)
