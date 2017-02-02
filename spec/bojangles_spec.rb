@@ -245,9 +245,18 @@ describe Bojangles do
     end
   end
   describe 'message_list' do
-    context 'with error messages' do
+    context 'with new error messages' do
       it 'creates a message_list of given heading and error messages' do
         heading = 'Bojangles has noticed the following errors:'
+        result = Bojangles.message_list(%w(error1 error2))
+        expect(result.first).to include heading
+        expect(result.last).to include 'error1'
+        expect(result.last).to include 'error2'
+      end
+    end
+    context 'with resolved error messages' do
+      it 'creates a message_list of given heading and error messages' do
+        heading = 'This error has been resolved:'
         result = Bojangles.message_list(%w(error1 error2))
         expect(result.first).to include heading
         expect(result.last).to include 'error1'
