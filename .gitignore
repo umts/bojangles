@@ -4,3 +4,4 @@ emailed_status.json
 route_mappings.json
 config.json
 coverage
+!/coverage/.last_run.json
