@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 env :PATH, ENV['PATH']
 
-# Every minute, check for departure inaccuracies
-every 60.seconds do
+# Every minute after 5am, check for departure inaccuracies
+# raw cron asterisk order: minute, hour, day of month, month, day of week
+every '*/1 6-23 * * *' do
   rake 'bojangles:go'
 end
 
