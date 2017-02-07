@@ -20,7 +20,6 @@ module Bojangles
 
   PVTA_API_URL = 'http://bustracker.pvta.com/InfoPoint/rest'
   ROUTES_URI = URI([PVTA_API_URL, 'routes', 'getvisibleroutes'].join('/'))
-  STUDIO_ARTS_BUILDING_ID = 72 # TODO: get from stops.txt instead of writing here
   DEPARTURES_URI = URI([PVTA_API_URL, 'stopdepartures', 'get', STUDIO_ARTS_BUILDING_ID].join('/'))
 
   MAIL_SETTINGS = CONFIG.fetch('mail_settings').symbolize_keys

@@ -7,7 +7,6 @@ require 'zipruby'
 
 module GtfsParser
   LOCAL_GTFS_DIR = File.expand_path('../../gtfs/', __FILE__)
-  STOP_NAME = 'Studio Arts Building'
   CACHE_FILE = 'cached_departures.json'
   GTFS_PROTOCOL = 'http://'
   GTFS_HOST = 'pvta.com'
