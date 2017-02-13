@@ -130,7 +130,7 @@ module Bojangles
   end
 
   def prepare!
-    # TODO: get stop names
+    stops = CONFIG.fetch 'stops'
     GtfsParser.prepare!(stops)
   end
 
