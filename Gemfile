@@ -8,3 +8,7 @@ gem 'rake'
 gem 'whenever'
 gem 'zipruby'
 gem 'rubocop'
+
+group :development, :test do
+  gem 'simplecov', require: false
+end

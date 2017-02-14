@@ -11,6 +11,7 @@ GEM
     byebug (8.2.2)
     chronic (0.10.2)
     coderay (1.1.0)
+    docile (1.1.5)
     i18n (0.7.0)
     json (1.8.3)
     mail (2.6.3)
@@ -39,6 +40,11 @@ GEM
       ruby-progressbar (~> 1.7)
       unicode-display_width (~> 1.0, >= 1.0.1)
     ruby-progressbar (1.8.1)
+    simplecov (0.13.0)
+      docile (~> 1.1.0)
+      json (>= 1.8, < 3)
+      simplecov-html (~> 0.10.0)
+    simplecov-html (0.10.0)
     slop (3.6.0)
     thread_safe (0.3.5)
     tzinfo (1.2.2)
@@ -57,6 +63,7 @@ DEPENDENCIES
   pry-byebug
   rake
   rubocop
+  simplecov
   whenever
   zipruby
 
