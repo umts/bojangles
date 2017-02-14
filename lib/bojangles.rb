@@ -112,7 +112,7 @@ module Bojangles
   end
 
   def message_list(error_messages, current)
-    if current == true
+    if current
       heading = 'Bojangles has noticed the following errors:'
     else
       heading = 'This error has been resolved:'
