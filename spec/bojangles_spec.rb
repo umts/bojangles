@@ -239,16 +239,25 @@ describe Bojangles do
           'error message list'
         end
         message = "This message brought to you by Bojangles, UMass Transit's monitoring service for the PVTA realtime bus departures feed."
-        expect(Bojangles.message_html(%w(error1 error2)))
+        expect(Bojangles.message_html(%w(error1 error2), current: true))
           .to include message + '<br>' + Bojangles.message_list
       end
     end
   end
   describe 'message_list' do
-    context 'with error messages' do
+    context 'with new error messages' do
       it 'creates a message_list of given heading and error messages' do
         heading = 'Bojangles has noticed the following errors:'
-        result = Bojangles.message_list(%w(error1 error2))
+        result = Bojangles.message_list(%w(error1 error2), current: true)
+        expect(result.first).to include heading
+        expect(result.last).to include 'error1'
+        expect(result.last).to include 'error2'
+      end
+    end
+    context 'with resolved error messages' do
+      it 'creates a message_list of given heading and error messages' do
+        heading = 'This error has been resolved:'
+        result = Bojangles.message_list(%w(error1 error2), current: false)
         expect(result.first).to include heading
         expect(result.last).to include 'error1'
         expect(result.last).to include 'error2'

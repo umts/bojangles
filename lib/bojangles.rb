@@ -85,7 +85,7 @@ module Bojangles
     new_error_messages = error_messages - cached_error_messages
     resolved_error_messages = cached_error_messages - error_messages
     if new_error_messages.present?
-      MAIL_SETTINGS[:html_body] = message_html(new_error_messages)
+      MAIL_SETTINGS[:html_body] = message_html(new_error_messages, current: true)
       if CONFIG['environment'] == 'development'
         MAIL_SETTINGS[:via] = :smtp
         MAIL_SETTINGS[:via_options] = { address: 'localhost', port: 1025 }
@@ -95,18 +95,28 @@ module Bojangles
       cache_error_messages!(new_error_messages)
     end
     if resolved_error_messages.present?
+      MAIL_SETTINGS[:html_body] = message_html(resolved_error_messages, current: false)
+      if CONFIG['environment'] == 'development'
+        MAIL_SETTINGS[:via] = :smtp
+        MAIL_SETTINGS[:via_options] = { address: 'localhost', port: 1025 }
+      end
+      Pony.mail MAIL_SETTINGS
       update_log_file! to: { current_time: current_time, error_resolved: resolved_error_messages }
     end
   end
 
-  def message_html(error_messages)
+  def message_html(error_messages, current:)
     message = ["This message brought to you by Bojangles, UMass Transit's monitoring service for the PVTA realtime bus departures feed."]
-    message << message_list(error_messages)
+    message << message_list(error_messages, current: current)
     message.flatten.join '<br>'
   end
 
-  def message_list(error_messages)
-    heading = 'Bojangles has noticed the following errors:'
+  def message_list(error_messages, current:)
+    if current
+      heading = 'Bojangles has noticed the following errors:'
+    else
+      heading = 'This error has been resolved:'
+    end
     list = '<ul>'
     error_messages.each do |error|
       list << '<li>'
