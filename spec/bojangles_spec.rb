@@ -175,7 +175,7 @@ describe Bojangles do
           .to_return(status: 200, body: route_directions, headers: {})
         Bojangles.cache_route_mappings!
 
-        result = Bojangles.get_avail_departure_times!
+        result = Bojangles.get_avail_departure_times!([72])
         expect(result).is_a? Hash
         expect(result).to include %w(10 CompSci) => '2016-12-12 14:00:00 -0500'
         expect(result).to include %w(30 Garage) => '2016-12-12 14:00:00 -0500'
@@ -198,7 +198,8 @@ describe Bojangles do
           .with(headers: { 'Accept' => '*/*', 'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host' => 'bustracker.pvta.com', 'User-Agent' => 'Ruby' })
           .to_return(status: 200, body: route_directions, headers: {})
 
-        result = Bojangles.get_avail_departure_times!
+        # Get the avail departure times for SAB ID = 72
+        result = Bojangles.get_avail_departure_times!([72])
         expect(result).is_a? Hash
         expect(result).to be_empty
       end

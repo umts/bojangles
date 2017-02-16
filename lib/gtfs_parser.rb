@@ -7,17 +7,16 @@ require 'zipruby'
 
 module GtfsParser
   LOCAL_GTFS_DIR = File.expand_path('../../gtfs/', __FILE__)
-  STOP_NAME = 'Studio Arts Building'
   CACHE_FILE = 'cached_departures.json'
   GTFS_PROTOCOL = 'http://'
   GTFS_HOST = 'pvta.com'
   GTFS_PATH = '/g_trans/google_transit.zip'
   LOG = File.expand_path('../../log', __FILE__)
 
-  def prepare!
+  def prepare!(stops)
     zip_log_file!
     get_new_files! unless files_up_to_date?
-    cache_departures!
+    cache_departures!(stops)
   end
 
   # Returns a hash which you can query by route number and direction,
@@ -25,26 +24,30 @@ module GtfsParser
   # the next scheduled departure,
   # and the previous scheduled departure.
   # Example:
-  # {['31', '0'] => ['Sunderland', '13:51:00', '14:06:00']}
+  # {79 => {['31', '0'] => ['Sunderland', '13:51:00', '14:06:00']}}
   def soonest_departures_within(minutes)
-    departure_times = {}
-    cached_departures.each do |(route_number, direction_id, headsign), times|
+    departures = {}
+    cached_departures.each do |(stop_id, route_number, direction_id, headsign), times|
       next_time = times.find { |time| time_within? minutes, time }
       next unless next_time
       last_time = times[times.index(next_time) - 1] unless next_time == times.first
-      times_in_same_route_direction = departure_times[[route_number, direction_id]]
-      unless times_in_same_route_direction && times_in_same_route_direction.last < next_time
-        departure_times[[route_number, direction_id]] = [headsign, last_time, next_time]
+      departure_times = departures[stop_id]
+      if departure_times
+        times_in_same_route_direction = departure_times[[route_number, direction_id]]
+        unless times_in_same_route_direction && times_in_same_route_direction.last < next_time
+          departures[stop_id] ||= {}
+          departures[stop_id][[route_number, direction_id]] = [headsign, last_time, next_time]
+        end
       end
     end
-    departure_times
+    departures
   end
 
   private
 
   # Stores departures in the cache file.
-  def cache_departures!
-    departures = find_departures
+  def cache_departures!(stops)
+    departures = find_departures(stops)
     File.open CACHE_FILE, 'w' do |file|
       file.puts departures.to_json
     end
@@ -110,12 +113,12 @@ module GtfsParser
     entries
   end
 
-  # Find the ID of the stop whose name is defined in STOP_NAME
-  def find_stop_id
+  # Find the ID of the stop whose name is given
+  def find_stop_id(stop_name)
     filename = [LOCAL_GTFS_DIR, 'stops.txt'].join '/'
     stop = {}
     CSV.foreach filename, headers: true do |row|
-      if row.fetch('stop_name').include? STOP_NAME
+      if row.fetch('stop_name').include? stop_name
         stop = row
         break
       end
@@ -125,13 +128,14 @@ module GtfsParser
 
   # Returns a hash which is keyed by trip ID,
   # and which stores the trip's route ID, direction, and headsign
-  def find_trips_operating_today
+  def find_trips_operating_today(stop_id)
     service_ids = find_service_ids_today
     filename = [LOCAL_GTFS_DIR, 'trips.txt'].join '/'
     trips = {}
     CSV.foreach filename, headers: true do |row|
       if service_ids.include? row.fetch('service_id')
-        trips[row.fetch 'trip_id'] = [row.fetch('route_id'),
+        trips[row.fetch 'trip_id'] = [stop_id,
+                                      row.fetch('route_id'),
                                       row.fetch('direction_id'),
                                       row.fetch('trip_headsign')]
       end
@@ -143,10 +147,10 @@ module GtfsParser
   # find the departures at that route.
   # This is a hash keyed by route ID, direction, and headsign,
   # and which stores a sorted array of departure times.
-  def find_departures
+  def find_departures(stops)
     filename = [LOCAL_GTFS_DIR, 'stop_times.txt'].join '/'
-    stop_id = find_stop_id
-    trips = find_trips_operating_today
+    stop_id = find_stop_id(stops.first) # TODO: support multiple stops
+    trips = find_trips_operating_today(stop_id)
     # Track the indices so that for each row, we can always include the row after it.
     rows = []
     indices = []

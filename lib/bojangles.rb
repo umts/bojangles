@@ -20,8 +20,6 @@ module Bojangles
 
   PVTA_API_URL = 'http://bustracker.pvta.com/InfoPoint/rest'
   ROUTES_URI = URI([PVTA_API_URL, 'routes', 'getvisibleroutes'].join('/'))
-  STUDIO_ARTS_BUILDING_ID = 72 # TODO: get from stops.txt instead of writing here
-  DEPARTURES_URI = URI([PVTA_API_URL, 'stopdepartures', 'get', STUDIO_ARTS_BUILDING_ID].join('/'))
 
   MAIL_SETTINGS = CONFIG.fetch('mail_settings').symbolize_keys
 
@@ -46,10 +44,16 @@ module Bojangles
     JSON.parse File.read(CACHED_ROUTES_FILE)
   end
 
+  def departures_uri(stop_id)
+    URI([PVTA_API_URL, 'stopdepartures', 'get', stop_id].join('/'))
+  end
+
   # Return the hash mapping route number and headsign to the provided time
-  def get_avail_departure_times!
+  def get_avail_departure_times!(stop_ids)
     times = {}
-    stop_departure = JSON.parse(Net::HTTP.get(DEPARTURES_URI)).first
+    # TODO: support multiple stops
+    departures_endpoint = departures_uri(stop_ids.first)
+    stop_departure = JSON.parse(Net::HTTP.get(departures_endpoint)).first
     route_directions = stop_departure.fetch 'RouteDirections'
     route_directions.each do |route|
       route_id = route.fetch('RouteId').to_s
@@ -133,6 +137,11 @@ module Bojangles
   def parse_json_unix_timestamp(timestamp)
     matches = timestamp.match /\/Date\((\d+)000-0(4|5)00\)\//
     Time.at matches.captures.first.to_i
+  end
+
+  def prepare!
+    stops = CONFIG.fetch 'stops'
+    GtfsParser.prepare!(stops)
   end
 
   def update_log_file!(to:)

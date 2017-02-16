@@ -20,15 +20,18 @@ module DepartureComparator
       missing_routes: [],
       incorrect_times: []
     }
+    gtfs_times = soonest_departures_within DEPARTURE_FUTURE_HOURS * 60
+    stop_ids = gtfs_times.keys
     begin
-      avail_times = Bojangles.get_avail_departure_times!
+      # TODO: support multiple stops
+      avail_times = Bojangles.get_avail_departure_times!(stop_ids.first)
     rescue SocketError
       report_feed_down
     end
-    gtfs_times = soonest_departures_within DEPARTURE_FUTURE_HOURS * 60
     # Look through each scheduled route, and make sure that each route is present,
     # and that the next reported departure has the correct scheduled time.
-    gtfs_times.each do |(route_number, _direction_id), (headsign, last_time, next_time)|
+    # TODO: support multiple stops
+    gtfs_times.values.each do |(route_number, _direction_id), (headsign, last_time, next_time)|
       if avail_times.key? [route_number, headsign]
         avail_time = avail_times.fetch [route_number, headsign]
         # if Avail's returned SDT is before now, check that it's the last scheduled
