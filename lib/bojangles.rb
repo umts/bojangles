@@ -51,19 +51,20 @@ module Bojangles
   # Return the hash mapping route number and headsign to the provided time
   def get_avail_departure_times!(stop_ids)
     times = {}
-    # TODO: support multiple stops
-    departures_endpoint = departures_uri(stop_ids.first)
-    stop_departure = JSON.parse(Net::HTTP.get(departures_endpoint)).first
-    route_directions = stop_departure.fetch 'RouteDirections'
-    route_directions.each do |route|
-      route_id = route.fetch('RouteId').to_s
-      route_number = cached_route_mappings[route_id]
-      departure = route.fetch('Departures').first
-      next unless departure.present?
-      departure_time = departure.fetch 'SDT' # scheduled departure time
-      trip = departure.fetch 'Trip'
-      headsign = trip.fetch 'InternetServiceDesc' # headsign
-      times[[route_number, headsign]] = parse_json_unix_timestamp(departure_time)
+    stop_ids.each do |stop_id|
+      departures_endpoint = departures_uri(stop_ids.first)
+      stop_departure = JSON.parse(Net::HTTP.get(departures_endpoint)).first
+      route_directions = stop_departure.fetch 'RouteDirections'
+      route_directions.each do |route|
+        route_id = route.fetch('RouteId').to_s
+        route_number = cached_route_mappings[route_id]
+        departure = route.fetch('Departures').first
+        next unless departure.present?
+        departure_time = departure.fetch 'SDT' # scheduled departure time
+        trip = departure.fetch 'Trip'
+        headsign = trip.fetch 'InternetServiceDesc' # headsign
+        times[[route_number, headsign, stop_id]] = parse_json_unix_timestamp(departure_time)
+      end
     end
     times
   end
