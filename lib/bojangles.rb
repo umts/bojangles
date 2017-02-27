@@ -52,7 +52,7 @@ module Bojangles
   def get_avail_departure_times!(stop_ids)
     times = {}
     stop_ids.each do |stop_id|
-      departures_endpoint = departures_uri(stop_ids.first)
+      departures_endpoint = departures_uri(stop_id)
       stop_departure = JSON.parse(Net::HTTP.get(departures_endpoint)).first
       route_directions = stop_departure.fetch 'RouteDirections'
       route_directions.each do |route|
