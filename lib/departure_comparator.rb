@@ -23,8 +23,7 @@ module DepartureComparator
     gtfs_times = soonest_departures_within DEPARTURE_FUTURE_HOURS * 60
     stop_ids = gtfs_times.keys
     begin
-      # TODO: support multiple stops
-      avail_times = Bojangles.get_avail_departure_times!(stop_ids.first)
+      avail_times = Bojangles.get_avail_departure_times!(stop_ids)
     rescue SocketError
       report_feed_down
     end
