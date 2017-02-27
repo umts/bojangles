@@ -29,10 +29,9 @@ module DepartureComparator
     end
     # Look through each scheduled route, and make sure that each route is present,
     # and that the next reported departure has the correct scheduled time.
-    # TODO: support multiple stops
     gtfs_times.values.each do |(route_number, _direction_id), (headsign, last_time, next_time)|
-      if avail_times.key? [route_number, headsign]
-        avail_time = avail_times.fetch [route_number, headsign]
+      if avail_times.key? [route_number, headsign, stop_id]
+        avail_time = avail_times.fetch [route_number, headsign, stop_id]
         # if Avail's returned SDT is before now, check that it's the last scheduled
         # departure from the stop (i.e. the bus is running late).
         if avail_time < Time.now && avail_time != last_time
