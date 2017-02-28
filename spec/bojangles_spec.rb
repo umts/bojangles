@@ -177,8 +177,8 @@ describe Bojangles do
 
         result = Bojangles.get_avail_departure_times!([72])
         expect(result).is_a? Hash
-        expect(result).to include %w(10 CompSci) => '2016-12-12 14:00:00 -0500'
-        expect(result).to include %w(30 Garage) => '2016-12-12 14:00:00 -0500'
+        expect(result).to include ['10', 'CompSci', 72] => '2016-12-12 14:00:00 -0500'
+        expect(result).to include ['30', 'Garage', 72] => '2016-12-12 14:00:00 -0500'
       end
     end
     context 'without departures' do
