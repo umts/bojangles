@@ -149,6 +149,7 @@ module GtfsParser
   # and which stores a sorted array of departure times.
   def find_departures(stops)
     filename = [LOCAL_GTFS_DIR, 'stop_times.txt'].join '/'
+    departures = {}
     stops.each do |stop|
       stop_id = find_stop_id(stop)
       trips = find_trips_operating_today(stop_id)
@@ -165,7 +166,6 @@ module GtfsParser
           end
         end
       end
-      departures[stop_id] = {}
       # If the departure's trip ID does not match the trip ID of the next row,
       # then it is the last stop in the trip, so it is not a departure.
       # For example, the last stop of an inbound 45 trip will be at Studio Arts Building,
@@ -176,9 +176,9 @@ module GtfsParser
       end.compact.each do |row|
         trip_id = row.fetch 'trip_id'
         route_data = trips[trip_id]
-        departures[stop_id, route_data] ||= []
-        departures[stop_id, route_data] << row.fetch('departure_time')
-        departures[stop_id, route_data].sort!
+        departures[route_data] ||= []
+        departures[route_data] << row.fetch('departure_time')
+        departures[route_data].sort!
       end
     end
     departures
