@@ -48,7 +48,7 @@ module Bojangles
     URI([PVTA_API_URL, 'stopdepartures', 'get', stop_id].join('/'))
   end
 
-  # Return the hash mapping route number and headsign to the provided time
+  # Return the hash mapping route number, headsign, and stop_id to the provided time
   def get_avail_departure_times!(stop_ids)
     times = {}
     stop_ids.each do |stop_id|
