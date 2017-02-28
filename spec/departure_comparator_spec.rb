@@ -68,27 +68,11 @@ describe DepartureComparator do
   describe 'compare' do
     context 'with scheduled routes' do
       it 'checks if every route is present and next departure has correct scheduled time' do
-        Bojangles.stub(:get_avail_departure_times!) do
-          {79 => { ['30', '0', 'North Amherst'] =>
-            ['07:28:08',
-             '07:35:03',
-             '08:01:40',
-             '08:20:00',
-             '08:31:38',
-             '08:46:50',
-             '09:03:19',
-             '09:20:20',
-             '09:35:40',
-             '09:45:25',
-             '10:00:22',
-             '10:15:10'] }}
-        end
-        departures = find_departures(['North Amherst'])
+        departures = find_departures(['North Amherst', 'Graduate Research Center'])
         File.open 'cached_departures.json', 'w' do |file|
           file.puts departures.to_json
         end
         result = compare
-
         expect(result.first).to be @messages
         expect(result.last).to be @statuses
       end
