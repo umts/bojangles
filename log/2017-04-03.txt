@@ -1,6 +1,0 @@
-[Apr 03 2017 09:09] New error: "error_message"
-[Apr 03 2017 10:09] Error resolved: "error_message"
-[Apr 03 2017 09:09] New error: "error1"
-[Apr 03 2017 09:09] New error: "error2"
-[Apr 03 2017 10:09] Error resolved: "error3"
-[Apr 03 2017 10:09] Error resolved: "error4"
