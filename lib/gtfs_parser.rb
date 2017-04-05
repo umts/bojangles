@@ -32,12 +32,11 @@ module GtfsParser
       next unless next_time
       last_time = times[times.index(next_time) - 1] unless next_time == times.first
       departure_times = departures[stop_id]
-      if departure_times
-        times_in_same_route_direction = departure_times[[route_number, direction_id]]
-        unless times_in_same_route_direction && times_in_same_route_direction.last < next_time
-          departures[stop_id] ||= {}
-          departures[stop_id][[route_number, direction_id]] = [headsign, last_time, next_time]
-        end
+      next unless departure_times
+      times_in_same_route_direction = departure_times[[route_number, direction_id]]
+      unless times_in_same_route_direction && times_in_same_route_direction.last < next_time
+        departures[stop_id] ||= {}
+        departures[stop_id][[route_number, direction_id]] = [headsign, last_time, next_time]
       end
     end
     departures

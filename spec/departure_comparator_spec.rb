@@ -1,11 +1,12 @@
-#frozen_string_literal: true
+# frozen_string_literal: true
+# frozen_string_literal: true
 require 'spec_helper'
 require 'timecop'
 include DepartureComparator
 include GtfsParser
 
 describe DepartureComparator do
-	before :each do
+  before :each do
     @messages = ['error']
     @statuses = { feed_down: false, missing_routes: [], incorrect_times: [] }
     @all_messages = []
@@ -64,54 +65,54 @@ describe DepartureComparator do
         expect(@messages.last).to include avail_time
         expect(@statuses.fetch(:incorrect_times)).to include @route_number
       end
-		end	
+    end
   end
-describe 'compare' do
+  describe 'compare' do
     context 'with a bus running late' do
-      it 'reports incorrect departure' do	
-				Timecop.freeze(2016, 12, 12, 14, 0)
-				early_SDT_time = Time.new(2016, 12, 12, 13, 58)
-				@messages = ['error']
-				@statuses = { feed_down: false, missing_routes: ['31'], incorrect_times: [early_SDT_time]}
-				expect(Bojangles)
-					.to receive(:get_avail_departure_times!)
-					.and_return({['31', 'North Amherst', 79] => early_SDT_time}) 
-				last_time = Time.new(2016, 12, 12, 13, 53)
-				next_time = Time.new(2016, 12, 12, 14, 8) 
-				expect_any_instance_of(GtfsParser)
-					.to receive(:soonest_departures_within)
-					.and_return({79 => {['31', '0'] => ['North Amherst', last_time, next_time]}})
-				expect_any_instance_of(DepartureComparator)
-					.to receive(:report_incorrect_departure)
-					.with('31', 'North Amherst', last_time, early_SDT_time, 'past')
-					.and_return([@messages, @statuses])
-				
-				expect(compare).to match_array([@messages, @statuses])
-				Timecop.return
-			end
+      it 'reports incorrect departure' do
+        Timecop.freeze(2016, 12, 12, 14, 0)
+        early_SDT_time = Time.new(2016, 12, 12, 13, 58)
+        @messages = ['error']
+        @statuses = { feed_down: false, missing_routes: ['31'], incorrect_times: [early_SDT_time] }
+        expect(Bojangles)
+          .to receive(:get_avail_departure_times!)
+          .and_return(['31', 'North Amherst', 79] => early_SDT_time)
+        last_time = Time.new(2016, 12, 12, 13, 53)
+        next_time = Time.new(2016, 12, 12, 14, 8)
+        expect_any_instance_of(GtfsParser)
+          .to receive(:soonest_departures_within)
+          .and_return(79 => { %w(31 0) => ['North Amherst', last_time, next_time] })
+        expect_any_instance_of(DepartureComparator)
+          .to receive(:report_incorrect_departure)
+          .with('31', 'North Amherst', last_time, early_SDT_time, 'past')
+          .and_return([@messages, @statuses])
+
+        expect(compare).to match_array([@messages, @statuses])
+        Timecop.return
+      end
     end
     context 'with an early bus' do
-      it 'reports incorrect departure' do	
-				Timecop.freeze(2016, 12, 12, 14, 0)
-				late_SDT_time = Time.new(2016, 12, 12, 14, 5)
-				@messages = ['error']
-				@statuses = { feed_down: false, missing_routes: ['31'], incorrect_times: [late_SDT_time]}
-				expect(Bojangles)
-					.to receive(:get_avail_departure_times!)
-					.and_return({['31', 'North Amherst', 79] => late_SDT_time}) 
-				last_time_2 = Time.new(2016, 12, 12, 13, 53)
-				next_time_2 = Time.new(2016, 12, 12, 14, 8) 
-				expect_any_instance_of(GtfsParser)
-					.to receive(:soonest_departures_within)
-					.and_return({79 => {['31', '0'] => ['North Amherst', last_time_2, next_time_2]}})
-				expect_any_instance_of(DepartureComparator)
-					.to receive(:report_incorrect_departure)
-					.with('31', 'North Amherst', next_time_2, late_SDT_time, 'future')
-					.and_return([@messages, @statuses])
-				
-				expect(compare).to match_array([@messages, @statuses])
-				Timecop.return
-			end
-		end
-	end
+      it 'reports incorrect departure' do
+        Timecop.freeze(2016, 12, 12, 14, 0)
+        late_SDT_time = Time.new(2016, 12, 12, 14, 5)
+        @messages = ['error']
+        @statuses = { feed_down: false, missing_routes: ['31'], incorrect_times: [late_SDT_time] }
+        expect(Bojangles)
+          .to receive(:get_avail_departure_times!)
+          .and_return(['31', 'North Amherst', 79] => late_SDT_time)
+        last_time_2 = Time.new(2016, 12, 12, 13, 53)
+        next_time_2 = Time.new(2016, 12, 12, 14, 8)
+        expect_any_instance_of(GtfsParser)
+          .to receive(:soonest_departures_within)
+          .and_return(79 => { %w(31 0) => ['North Amherst', last_time_2, next_time_2] })
+        expect_any_instance_of(DepartureComparator)
+          .to receive(:report_incorrect_departure)
+          .with('31', 'North Amherst', next_time_2, late_SDT_time, 'future')
+          .and_return([@messages, @statuses])
+
+        expect(compare).to match_array([@messages, @statuses])
+        Timecop.return
+      end
+    end
+  end
 end
