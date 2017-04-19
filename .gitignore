@@ -2,6 +2,8 @@ gtfs/**/*
 cached_departures.json
 emailed_status.json
 route_mappings.json
+error_messages.json
+log/*
 config.json
 coverage
 !/coverage/.last_run.json

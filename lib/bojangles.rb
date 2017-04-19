@@ -48,22 +48,23 @@ module Bojangles
     URI([PVTA_API_URL, 'stopdepartures', 'get', stop_id].join('/'))
   end
 
-  # Return the hash mapping route number and headsign to the provided time
+  # Return the hash mapping route number, headsign, and stop_id to the provided time
   def get_avail_departure_times!(stop_ids)
     times = {}
-    # TODO: support multiple stops
-    departures_endpoint = departures_uri(stop_ids.first)
-    stop_departure = JSON.parse(Net::HTTP.get(departures_endpoint)).first
-    route_directions = stop_departure.fetch 'RouteDirections'
-    route_directions.each do |route|
-      route_id = route.fetch('RouteId').to_s
-      route_number = cached_route_mappings[route_id]
-      departure = route.fetch('Departures').first
-      next unless departure.present?
-      departure_time = departure.fetch 'SDT' # scheduled departure time
-      trip = departure.fetch 'Trip'
-      headsign = trip.fetch 'InternetServiceDesc' # headsign
-      times[[route_number, headsign]] = parse_json_unix_timestamp(departure_time)
+    stop_ids.each do |stop_id|
+      departures_endpoint = departures_uri(stop_id)
+      stop_departure = JSON.parse(Net::HTTP.get(departures_endpoint)).first
+      route_directions = stop_departure.fetch 'RouteDirections'
+      route_directions.each do |route|
+        route_id = route.fetch('RouteId').to_s
+        route_number = cached_route_mappings[route_id]
+        departure = route.fetch('Departures').first
+        next unless departure.present?
+        departure_time = departure.fetch 'SDT' # scheduled departure time
+        trip = departure.fetch 'Trip'
+        headsign = trip.fetch 'InternetServiceDesc' # headsign
+        times[[route_number, headsign, stop_id]] = parse_json_unix_timestamp(departure_time)
+      end
     end
     times
   end
@@ -116,11 +117,11 @@ module Bojangles
   end
 
   def message_list(error_messages, current:)
-    if current
-      heading = 'Bojangles has noticed the following errors:'
-    else
-      heading = 'This error has been resolved:'
-    end
+    heading = if current
+                'Bojangles has noticed the following errors:'
+              else
+                'This error has been resolved:'
+              end
     list = '<ul>'
     error_messages.each do |error|
       list << '<li>'

@@ -150,21 +150,23 @@ describe Bojangles do
     end
   end
   describe 'get_avail_departure_times' do
-    context 'with departures' do
+    context 'with departures and multiple stop_ids' do
       it 'returns the hash mapping route number and headsign to the provided time' do
         Bojangles.stub(:cache_route_mappings!) do
           routes = { ShortName: 30, RouteId: 20_030,
-                     ShortName: 10, RouteId: 20_010 }
+                     ShortName: 10, RouteId: 20_010,
+                     ShortName: 45, RouteId: 20_045 }
           File.open CACHED_ROUTES_FILE, 'w' do |file|
             file.puts routes.to_json
           end
         end
         Bojangles.stub(:cached_route_mappings) do
-          { '20030' => '30', '20010' => '10' }
+          { '20030' => '30', '20010' => '10', '20045' => '45' }
         end
         Bojangles.stub(:parse_json_unix_timestamp) do
           '2016-12-12 14:00:00 -0500'
         end
+
         dept1 = { SDT: '13:00', Trip: { InternetServiceDesc: 'Garage' } }
         dept2 = { SDT: '12:00', Trip: { InternetServiceDesc: 'CompSci' } }
         route_directions = [{ RouteDirections:
@@ -173,12 +175,20 @@ describe Bojangles do
         stub_request(:get, 'http://bustracker.pvta.com/InfoPoint/rest/stopdepartures/get/72')
           .with(headers: { 'Accept' => '*/*', 'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host' => 'bustracker.pvta.com', 'User-Agent' => 'Ruby' })
           .to_return(status: 200, body: route_directions, headers: {})
-        Bojangles.cache_route_mappings!
 
-        result = Bojangles.get_avail_departure_times!([72])
+        dept3 = { SDT: '14:00', Trip: { InternetServiceDesc: 'LRC' } }
+        route_directions2 = [{ RouteDirections:
+            [{ ShortName: 45, RouteId: 20_045, Departures: [dept3] }] }].to_json
+        stub_request(:get, 'http://bustracker.pvta.com/InfoPoint/rest/stopdepartures/get/79')
+          .with(headers: { 'Accept' => '*/*', 'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host' => 'bustracker.pvta.com', 'User-Agent' => 'Ruby' })
+          .to_return(status: 200, body: route_directions2, headers: {})
+        Bojangles.cache_route_mappings!
+        result = Bojangles.get_avail_departure_times!([72, 79])
+
         expect(result).is_a? Hash
-        expect(result).to include %w(10 CompSci) => '2016-12-12 14:00:00 -0500'
-        expect(result).to include %w(30 Garage) => '2016-12-12 14:00:00 -0500'
+        expect(result).to include ['10', 'CompSci', 72] => '2016-12-12 14:00:00 -0500'
+        expect(result).to include ['30', 'Garage', 72] => '2016-12-12 14:00:00 -0500'
+        expect(result).to include ['45', 'LRC', 79] => '2016-12-12 14:00:00 -0500'
       end
     end
     context 'without departures' do
