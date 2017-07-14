@@ -13,7 +13,7 @@ module GtfsParser
   GTFS_PATH = '/g_trans/google_transit.zip'
   LOG = File.expand_path('../../log', __FILE__)
 
-  def prepare!(stops)
+  def prepare(stops)
     zip_log_file!
     get_new_files! unless files_up_to_date?
     cache_departures!(stops)

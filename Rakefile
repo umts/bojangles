@@ -9,12 +9,8 @@ namespace :bojangles do
     Bojangles.go!
   end
   task :daily do
-    # Cache SAB stop ID
-
     # Cache the mapping from route number to Avail route ID
     Bojangles.cache_route_mappings!
     Bojangles.prepare!
-    # Cache departures
-    GtfsParser.prepare!
   end
 end
