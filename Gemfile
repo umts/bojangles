@@ -10,6 +10,8 @@ gem 'zipruby'
 gem 'rubocop'
 
 group :development, :test do
+  gem 'rspec'
   gem 'simplecov', require: false
   gem 'timecop'
+  gem 'webmock'
 end
