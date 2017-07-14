@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/conversions'
 require 'digest'
@@ -124,14 +125,14 @@ module Bojangles
               end
     list = '<ul>'
     error_messages.each do |error|
-      list << '<li>'
+      list += '<li>'
       error.split("\n").each do |line|
-        list << line
-        list << '<br>'
+        list += line
+        list += '<br>'
       end
-      list << '</li>'
+      list += '</li>'
     end
-    list << '</ul>'
+    list += '</ul>'
     [heading, list]
   end
 

@@ -99,8 +99,8 @@ describe Bojangles do
     context 'with bojangles daily task' do
       it 'returns the cached route mappings' do
         Bojangles.stub(:cache_route_mappings!) do
-          routes = { ShortName: 30, RouteId: 20_030,
-                     ShortName: 10, RouteId: 20_010 }
+          routes = [{ ShortName: 30, RouteId: 20_030 },
+                    { ShortName: 10, RouteId: 20_010 }]
           File.open CACHED_ROUTES_FILE, 'w' do |file|
             file.puts routes.to_json
           end
@@ -114,8 +114,8 @@ describe Bojangles do
   end
   describe 'cache_route_mappings!' do
     before :each do
-      routes = [{ ShortName: 30, RouteId: 20_030,
-                  ShortName: 10, RouteId: 20_010 }].to_json
+      routes = [{ ShortName: 30, RouteId: 20_030 },
+                { ShortName: 10, RouteId: 20_010 }].to_json
       stub_request(:get, 'http://bustracker.pvta.com/InfoPoint/rest/routes/getvisibleroutes')
         .with(headers: { 'Accept' => '*/*', 'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host' => 'bustracker.pvta.com', 'User-Agent' => 'Ruby' })
         .to_return(status: 200, body: routes, headers: {})
@@ -146,6 +146,7 @@ describe Bojangles do
         Bojangles.cache_error_messages!
         expect(File.file?('error_messages.json')).to be true
         expect(Bojangles.cached_error_messages).to include 'error_message'
+        FileUtils.rm 'error_messages.json'
       end
     end
   end
@@ -153,9 +154,9 @@ describe Bojangles do
     context 'with departures and multiple stop_ids' do
       it 'returns the hash mapping route number and headsign to the provided time' do
         Bojangles.stub(:cache_route_mappings!) do
-          routes = { ShortName: 30, RouteId: 20_030,
-                     ShortName: 10, RouteId: 20_010,
-                     ShortName: 45, RouteId: 20_045 }
+          routes = [ { ShortName: 30, RouteId: 20_030 },
+                     { ShortName: 10, RouteId: 20_010 },
+                     { ShortName: 45, RouteId: 20_045 }]
           File.open CACHED_ROUTES_FILE, 'w' do |file|
             file.puts routes.to_json
           end
@@ -194,8 +195,7 @@ describe Bojangles do
     context 'without departures' do
       it 'returns an empty hash' do
         Bojangles.stub(:cache_route_mappings!) do
-          routes = { ShortName: 30, RouteId: 20_030,
-                     ShortName: 10, RouteId: 20_010 }
+          routes = { '30' => '20_030', '10' => '20_010' }
           File.open CACHED_ROUTES_FILE, 'w' do |file|
             file.puts routes.to_json
           end
@@ -216,6 +216,7 @@ describe Bojangles do
     end
   end
   describe 'cache_error_messages!' do
+    after(:each) { FileUtils.rm 'error_messages.json' }
     context 'with one error message' do
       it 'adds error in json to error messages file' do
         Bojangles.cache_error_messages!(['error_message'])
