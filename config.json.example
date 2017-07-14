@@ -1,4 +1,5 @@
 {
+  "stops": ["Studio Arts Building", "Fine Arts Center", "Haigis Mall"],
   "mail_settings": {"to": "transit-it@admin.umass.edu",
                    "from": "transit-it@admin.umass.edu",
                    "subject": "PVTA realtime feed error"},

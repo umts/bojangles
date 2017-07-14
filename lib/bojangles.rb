@@ -142,7 +142,7 @@ module Bojangles
 
   def prepare!
     stops = CONFIG.fetch 'stops'
-    GtfsParser.prepare!(stops)
+    GtfsParser.prepare stops
   end
 
   def update_log_file!(to:)

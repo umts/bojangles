@@ -9,7 +9,7 @@ describe Bojangles do
       stub_request(:get, 'http://bustracker.pvta.com/InfoPoint/rest/stopdepartures/get/72')
         .with(headers: { 'Accept' => '*/*', 'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host' => 'bustracker.pvta.com', 'User-Agent' => 'Ruby' })
         .to_return(status: 200, body: '', headers: {})
-      Pony.stub(:deliver)
+      allow(Pony).to receive(:deliver)
     end
     context 'with new error messages' do
       it 'updates the log and caches error messages' do
