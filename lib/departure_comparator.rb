@@ -32,26 +32,24 @@ module DepartureComparator
     # Look through each scheduled route,
     # and make sure that each route is present,
     # and that the next reported departure has the correct scheduled time.
-    gtfs_times.keys.each do |stop_id|
-      gtfs_times.values.each do |gtfs_object|
-        gtfs_object.each do	|route_data, (headsign, last_time, next_time)|
-          route_number, _direction_id = route_data
-          if avail_times.key? [route_number, headsign, stop_id]
-            avail_time = avail_times.fetch [route_number, headsign, stop_id]
-            # if Avail's returned SDT is before now,
-            # check that it's the last scheduled departure from the stop
-            # (i.e. the bus is running late).
-            if avail_time < Time.now && avail_time != last_time
-              report_incorrect_departure route_number, headsign,
-                                         last_time, avail_time, 'past'
-            # if the returned SDT is after now,
-            # check that it's the next scheduled departure
-            elsif avail_time >= Time.now && avail_time != next_time
-              report_incorrect_departure route_number, headsign,
-                                         next_time, avail_time, 'future'
-            end
-          else report_missing_route route_number, headsign, next_time
+    gtfs_times.each_pair do |stop_id, gtfs_object|
+      gtfs_object.each do	|route_data, (headsign, last_time, next_time)|
+        route_number, _direction_id = route_data
+        if avail_times.key? [route_number, headsign, stop_id]
+          avail_time = avail_times.fetch [route_number, headsign, stop_id]
+          # if Avail's returned SDT is before now,
+          # check that it's the last scheduled departure from the stop
+          # (i.e. the bus is running late).
+          if avail_time < Time.now && avail_time != last_time
+            report_incorrect_departure route_number, headsign,
+                                       last_time, avail_time, 'past'
+          # if the returned SDT is after now,
+          # check that it's the next scheduled departure
+          elsif avail_time >= Time.now && avail_time != next_time
+            report_incorrect_departure route_number, headsign,
+                                       next_time, avail_time, 'future'
           end
+        else report_missing_route route_number, headsign, next_time
         end
       end
     end
