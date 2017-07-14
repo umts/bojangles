@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'csv'
 require 'fileutils'
 require 'json'
@@ -27,17 +28,20 @@ module GtfsParser
   # {79 => {['31', '0'] => ['Sunderland', '13:51:00', '14:06:00']}}
   def soonest_departures_within(minutes)
     departures = {}
-    cached_departures.each do |(stop_id, route_number, direction_id, headsign), times|
+    cached_departures.each do |route_data, times|
+      stop_id, route_number, direction_id, headsign = route_data
       next_time = times.find { |time| time_within? minutes, time }
       next unless next_time
-      last_time = times[times.index(next_time) - 1] unless next_time == times.first
+      unless next_time == times.first
+        last_time = times[times.index(next_time) - 1]
+      end
       departure_times = departures[stop_id]
       next unless departure_times
-      times_in_same_route_direction = departure_times[[route_number, direction_id]]
-      unless times_in_same_route_direction && times_in_same_route_direction.last < next_time
-        departures[stop_id] ||= {}
-        departures[stop_id][[route_number, direction_id]] = [headsign, last_time, next_time]
-      end
+      times_same_route_dir = departure_times[[route_number, direction_id]]
+      next if times_same_route_dir && times_same_route_dir.last < next_time
+      departures[stop_id] ||= {}
+      route_dir_data = [headsign, last_time, next_time]
+      departures[stop_id][[route_number, direction_id]] = route_dir_data
     end
     departures
   end
@@ -52,18 +56,18 @@ module GtfsParser
     end
   end
 
-  # Zip yesterday's log file into an archive directory, with filenames indicating the date
+  # Zip yesterday's log file into an archive directory,
+  # with filenames indicating the date
   def zip_log_file!
-    if File.file? "#{todays_date}.txt"
-      # At 4am, so todays_date log file is yesterday's log file
-      FileUtils.mkdir_p LOG
-      zipfile = File.open "#{todays_date}.txt"
-      Zip::Archive.open_buffer zipfile do |archive|
-        archive.each do |file|
-          file_path = File.join LOG, file.name
-          File.open file_path, 'w' do |f|
-            f << file.read
-          end
+    return unless File.file? "#{todays_date}.txt"
+    # At 4am, so todays_date log file is yesterday's log file
+    FileUtils.mkdir_p LOG
+    zipfile = File.open "#{todays_date}.txt"
+    Zip::Archive.open_buffer zipfile do |archive|
+      archive.each do |file|
+        file_path = File.join LOG, file.name
+        File.open file_path, 'w' do |f|
+          f << file.read
         end
       end
     end
@@ -74,7 +78,8 @@ module GtfsParser
     departures = JSON.parse(File.read(CACHE_FILE))
     parsed_departures = {}
     departures.each do |route_data, times|
-      parsed_departures[JSON.parse(route_data)] = times.map { |time| parse_time time }
+      route_key = JSON.parse route_data
+      parsed_departures[route_key] = times.map { |time| parse_time time }
     end
     parsed_departures
   end
@@ -97,12 +102,14 @@ module GtfsParser
   def find_service_ids_today
     filename = [LOCAL_GTFS_DIR, 'calendar.txt'].join '/'
     entries = []
-    weekday_columns = %w(sunday monday tuesday wednesday thursday friday saturday)
+    weekday_columns = %w[sunday monday tuesday wednesday
+                         thursday friday saturday]
     weekday = weekday_columns[todays_date.wday]
     CSV.foreach filename, headers: true do |row|
       service_id = row.fetch('service_id')
       if service_id.include? 'UMTS'
-        if row.fetch(weekday) == '1' # that is to say, if the service type runs today
+        # that is to say, if the service type runs today
+        if row.fetch(weekday) == '1'
           start_date = Date.parse row.fetch('start_date')
           end_date = Date.parse row.fetch('end_date')
           entries << service_id if (start_date..end_date).cover?(Date.today)
@@ -152,11 +159,13 @@ module GtfsParser
     stops.each do |stop|
       stop_id = find_stop_id(stop)
       trips = find_trips_operating_today(stop_id)
-      # Track the indices so that for each row, we can always include the row after it.
+      # Track the indices so that for each row,
+      # we can always include the row after it.
       rows = []
       indices = []
       CSV.foreach(filename, headers: true).with_index do |row, index|
-        rows << row && next if indices.map(&:succ).include? index # If the previous row has been saved
+        # If the previous row has been saved
+        rows << row && next if indices.map(&:succ).include? index
         trip_id = row.fetch 'trip_id'
         if trips.key? trip_id
           if row.fetch('stop_id') == stop_id
@@ -167,12 +176,15 @@ module GtfsParser
       end
       # If the departure's trip ID does not match the trip ID of the next row,
       # then it is the last stop in the trip, so it is not a departure.
-      # For example, the last stop of an inbound 45 trip will be at Studio Arts Building,
-      # but we do *not* want to report a departure with headsign UMass.
-      # Basically, trips always end with a headsign change.
-      rows.each_slice(2).map do |row, next_row| # Take the first of each pair if it matches
+      # For example, the last stop of an inbound 45 trip will be at Studio Arts
+      # Building, but we do *not* want to report a departure with headsign
+      # UMass. Basically, trips always end with a headsign change.
+
+      # Take the first of each pair if it matches
+      rows = rows.each_slice(2).map do |row, next_row|
         row if row.fetch('trip_id') == next_row.fetch('trip_id')
-      end.compact.each do |row|
+      end
+      rows.compact.each do |row|
         trip_id = row.fetch 'trip_id'
         route_data = trips[trip_id]
         departures[route_data] ||= []

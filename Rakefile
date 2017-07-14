@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative 'lib/bojangles'
 include Bojangles
 require_relative 'lib/gtfs_parser'

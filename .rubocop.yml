@@ -1,2 +1,29 @@
 AllCops:
   TargetRubyVersion: 2.4
+
+Metrics/AbcSize:
+  Max: 33
+
+Metrics/BlockLength:
+  Exclude:
+    - spec/*
+
+Metrics/CyclomaticComplexity:
+  Max: 7
+
+Metrics/MethodLength:
+  Max: 32
+
+Metrics/ModuleLength:
+  Max: 178
+
+Metrics/PerceivedComplexity:
+  Max: 9
+
+# It isn't a reader method. We're actually going and getting stuff.
+Style/AccessorMethodName:
+  Enabled: false
+
+# We'll come back to this.
+Style/Documentation:
+  Enabled: false

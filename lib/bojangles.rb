@@ -11,13 +11,14 @@ require 'pry-byebug'
 require_relative 'departure_comparator'
 include DepartureComparator
 
-# Bojangles is the main driver of the script, and is responsible for communicating
-# with the Avail realtime feed.
+# Bojangles is the main driver of the script, and is responsible
+# for communicating with the Avail realtime feed.
 module Bojangles
-  if File.file? 'config.json'
-    CONFIG = JSON.parse File.read('config.json')
-  else raise 'No config file found. Please see the config.json.example file and create a config.json file to match.'
-  end
+  raise <<~MESSAGE unless File.file? 'config.json'
+    No config file found. Please see the config.json.example file \
+    and create a config.json file to match.
+  MESSAGE
+  CONFIG = JSON.parse File.read('config.json')
 
   PVTA_API_URL = 'http://bustracker.pvta.com/InfoPoint/rest'
   ROUTES_URI = URI([PVTA_API_URL, 'routes', 'getvisibleroutes'].join('/'))
@@ -49,7 +50,8 @@ module Bojangles
     URI([PVTA_API_URL, 'stopdepartures', 'get', stop_id].join('/'))
   end
 
-  # Return the hash mapping route number, headsign, and stop_id to the provided time
+  # Return the hash mapping route number,
+  # headsign, and stop_id to the provided time
   def get_avail_departure_times!(stop_ids)
     times = {}
     stop_ids.each do |stop_id|
@@ -64,7 +66,8 @@ module Bojangles
         departure_time = departure.fetch 'SDT' # scheduled departure time
         trip = departure.fetch 'Trip'
         headsign = trip.fetch 'InternetServiceDesc' # headsign
-        times[[route_number, headsign, stop_id]] = parse_json_unix_timestamp(departure_time)
+        route_data = [route_number, headsign, stop_id]
+        times[route_data] = parse_json_unix_timestamp(departure_time)
       end
     end
     times
@@ -85,34 +88,44 @@ module Bojangles
     end
   end
 
+  # Wouldn't make sense to have an if statement and then a guard clause.
+  # rubocop:disable Style/GuardClause
   def go!
-    error_messages, statuses = DepartureComparator.compare
+    error_messages, _statuses = DepartureComparator.compare
     current_time = Time.now
     new_error_messages = error_messages - cached_error_messages
     resolved_error_messages = cached_error_messages - error_messages
     if new_error_messages.present?
-      MAIL_SETTINGS[:html_body] = message_html(new_error_messages, current: true)
+      MAIL_SETTINGS[:html_body] = message_html(new_error_messages,
+                                               current: true)
       if CONFIG['environment'] == 'development'
         MAIL_SETTINGS[:via] = :smtp
         MAIL_SETTINGS[:via_options] = { address: 'localhost', port: 1025 }
       end
       Pony.mail MAIL_SETTINGS
-      update_log_file! to: { current_time: current_time, new_error: new_error_messages }
+      update_log_file! to: { current_time: current_time,
+                             new_error: new_error_messages }
       cache_error_messages!(new_error_messages)
     end
     if resolved_error_messages.present?
-      MAIL_SETTINGS[:html_body] = message_html(resolved_error_messages, current: false)
+      MAIL_SETTINGS[:html_body] = message_html(resolved_error_messages,
+                                               current: false)
       if CONFIG['environment'] == 'development'
         MAIL_SETTINGS[:via] = :smtp
         MAIL_SETTINGS[:via_options] = { address: 'localhost', port: 1025 }
       end
       Pony.mail MAIL_SETTINGS
-      update_log_file! to: { current_time: current_time, error_resolved: resolved_error_messages }
+      update_log_file! to: { current_time: current_time,
+                             error_resolved: resolved_error_messages }
     end
   end
+  # rubocop:enable Style/GuardClause
 
   def message_html(error_messages, current:)
-    message = ["This message brought to you by Bojangles, UMass Transit's monitoring service for the PVTA realtime bus departures feed."]
+    message = [<<~MESSAGE.tr("\n", ' ')]
+      This message brought to you by Bojangles, UMass Transit's monitoring
+      service for the PVTA realtime bus departures feed.
+    MESSAGE
     message << message_list(error_messages, current: current)
     message.flatten.join '<br>'
   end
@@ -137,7 +150,7 @@ module Bojangles
   end
 
   def parse_json_unix_timestamp(timestamp)
-    matches = timestamp.match /\/Date\((\d+)000-0(4|5)00\)\//
+    matches = timestamp.match %r{/Date\((\d+)000-0(4|5)00\)/}
     Time.at matches.captures.first.to_i
   end
 
@@ -153,8 +166,8 @@ module Bojangles
       to.delete(:current_time)
       to.keys.each do |error_type|
         to[error_type].each do |error_message|
-          file.puts <<-LOG_ENTRY
-#{time} #{error_type.to_s.humanize}: "#{error_message}"
+          file.puts <<~LOG_ENTRY
+            #{time} #{error_type.to_s.humanize}: "#{error_message}"
           LOG_ENTRY
         end
       end

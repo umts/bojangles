@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 env :PATH, ENV['PATH']
 
 # Every minute after 5am until 3am, check for departure inaccuracies.

@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-# frozen_string_literal: true
+
 require 'spec_helper'
 require 'timecop'
 include DepartureComparator
@@ -38,9 +38,12 @@ describe DepartureComparator do
   describe 'report_missing_route' do
     context 'with parameters of route_number, headsign, gtfs_time' do
       it 'adds missing_route to statuses and messages' do
-        route_and_headsign = "Route #{@route_number} with headsign #{@headsign} is missing:"
-        expected_departure = 'Expected to be departing from Studio Arts Building'
-        expected_time = "Expected scheduled departure time #{email_format @gtfs_time}"
+        route_and_headsign =
+          "Route #{@route_number} with headsign #{@headsign} is missing:"
+        expected_departure =
+          'Expected to be departing from Studio Arts Building'
+        expected_time =
+          "Expected scheduled departure time #{email_format @gtfs_time}"
 
         report_missing_route @route_number, @headsign, @gtfs_time
         expect(@messages.last).to include route_and_headsign
@@ -51,40 +54,45 @@ describe DepartureComparator do
     end
   end
   describe 'report_incorrect_departure' do
-    context 'with parameters of route_number, headsign, gtfs_time, avail_time, type' do
-      it 'adds incorrect_departure to statuses and messages' do
-        route_and_headsign = "Incorrect route #{@route_number} departure with headsign #{@headsign}:"
-        type = "Saw #{@type} departure time,"
-        expected_time = "expected to be #{email_format @gtfs_time};"
-        avail_time = "Received #{email_format @avail_time}"
+    it 'adds incorrect_departure to statuses and messages' do
+      route_and_headsign =
+        "Incorrect route #{@route_number} departure with headsign #{@headsign}:"
+      type = "Saw #{@type} departure time,"
+      expected_time = "expected to be #{email_format @gtfs_time};"
+      avail_time = "Received #{email_format @avail_time}"
 
-        report_incorrect_departure @route_number, @headsign, @gtfs_time, @avail_time, @type
-        expect(@messages.last).to include route_and_headsign
-        expect(@messages.last).to include type
-        expect(@messages.last).to include expected_time
-        expect(@messages.last).to include avail_time
-        expect(@statuses.fetch(:incorrect_times)).to include @route_number
-      end
+      report_incorrect_departure @route_number, @headsign, @gtfs_time,
+                                 @avail_time, @type
+      expect(@messages.last).to include route_and_headsign
+      expect(@messages.last).to include type
+      expect(@messages.last).to include expected_time
+      expect(@messages.last).to include avail_time
+      expect(@statuses.fetch(:incorrect_times)).to include @route_number
     end
   end
+
   describe 'compare' do
     context 'with a bus running late' do
       it 'reports incorrect departure' do
         Timecop.freeze(2016, 12, 12, 14, 0)
-        early_SDT_time = Time.new(2016, 12, 12, 13, 58)
+        early_sdt_time = Time.new(2016, 12, 12, 13, 58)
         @messages = ['error']
-        @statuses = { feed_down: false, missing_routes: ['31'], incorrect_times: [early_SDT_time] }
+        @statuses = { feed_down: false,
+                      missing_routes: ['31'],
+                      incorrect_times: [early_sdt_time] }
         expect(Bojangles)
           .to receive(:get_avail_departure_times!)
-          .and_return(['31', 'North Amherst', 79] => early_SDT_time)
+          .and_return(['31', 'North Amherst', 79] => early_sdt_time)
         last_time = Time.new(2016, 12, 12, 13, 53)
         next_time = Time.new(2016, 12, 12, 14, 8)
         expect_any_instance_of(GtfsParser)
           .to receive(:soonest_departures_within)
-          .and_return(79 => { %w(31 0) => ['North Amherst', last_time, next_time] })
+          .and_return(79 => { %w[31 0] => ['North Amherst',
+                                           last_time,
+                                           next_time] })
         expect_any_instance_of(DepartureComparator)
           .to receive(:report_incorrect_departure)
-          .with('31', 'North Amherst', last_time, early_SDT_time, 'past')
+          .with('31', 'North Amherst', last_time, early_sdt_time, 'past')
           .and_return([@messages, @statuses])
 
         expect(compare).to match_array([@messages, @statuses])
@@ -94,20 +102,24 @@ describe DepartureComparator do
     context 'with an early bus' do
       it 'reports incorrect departure' do
         Timecop.freeze(2016, 12, 12, 14, 0)
-        late_SDT_time = Time.new(2016, 12, 12, 14, 5)
+        late_sdt_time = Time.new(2016, 12, 12, 14, 5)
         @messages = ['error']
-        @statuses = { feed_down: false, missing_routes: ['31'], incorrect_times: [late_SDT_time] }
+        @statuses = { feed_down: false,
+                      missing_routes: ['31'],
+                      incorrect_times: [late_sdt_time] }
         expect(Bojangles)
           .to receive(:get_avail_departure_times!)
-          .and_return(['31', 'North Amherst', 79] => late_SDT_time)
-        last_time_2 = Time.new(2016, 12, 12, 13, 53)
-        next_time_2 = Time.new(2016, 12, 12, 14, 8)
+          .and_return(['31', 'North Amherst', 79] => late_sdt_time)
+        last_time2 = Time.new(2016, 12, 12, 13, 53)
+        next_time2 = Time.new(2016, 12, 12, 14, 8)
         expect_any_instance_of(GtfsParser)
           .to receive(:soonest_departures_within)
-          .and_return(79 => { %w(31 0) => ['North Amherst', last_time_2, next_time_2] })
+          .and_return(79 => { %w[31 0] => ['North Amherst',
+                                           last_time2,
+                                           next_time2] })
         expect_any_instance_of(DepartureComparator)
           .to receive(:report_incorrect_departure)
-          .with('31', 'North Amherst', next_time_2, late_SDT_time, 'future')
+          .with('31', 'North Amherst', next_time2, late_sdt_time, 'future')
           .and_return([@messages, @statuses])
 
         expect(compare).to match_array([@messages, @statuses])

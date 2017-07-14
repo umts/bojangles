@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 # frozen_string_literal: true
+
 require 'active_support/core_ext/string/strip'
 
 require_relative 'gtfs_parser'
@@ -12,8 +13,8 @@ module DepartureComparator
   # departures on a given route?
   DEPARTURE_FUTURE_HOURS = 3
 
-  # Returns an array of messages and of statuses by comparing the GTFS scheduled departures
-  # to the departures returned by the Avail endpoint
+  # Returns an array of messages and of statuses by comparing the GTFS
+  # scheduled departures to the departures returned by the Avail endpoint
   def compare
     @messages = []
     @statuses = {
@@ -28,21 +29,27 @@ module DepartureComparator
     rescue SocketError
       report_feed_down
     end
-    # Look through each scheduled route, and make sure that each route is present,
+    # Look through each scheduled route,
+    # and make sure that each route is present,
     # and that the next reported departure has the correct scheduled time.
     gtfs_times.keys.each do |stop_id|
       gtfs_times.values.each do |gtfs_object|
-        gtfs_object.each do	|(route_number, _direction_id), (headsign, last_time, next_time)|
+        gtfs_object.each do	|route_data, (headsign, last_time, next_time)|
+          route_number, _direction_id = route_data
           if avail_times.key? [route_number, headsign, stop_id]
             avail_time = avail_times.fetch [route_number, headsign, stop_id]
-            # if Avail's returned SDT is before now, check that it's the last scheduled
-            # departure from the stop (i.e. the bus is running late).
+            # if Avail's returned SDT is before now,
+            # check that it's the last scheduled departure from the stop
+            # (i.e. the bus is running late).
             if avail_time < Time.now && avail_time != last_time
-              report_incorrect_departure route_number, headsign, last_time, avail_time, 'past'
-            # if the returned SDT is after now, check that it's the next scheduled departure
+              report_incorrect_departure route_number, headsign,
+                                         last_time, avail_time, 'past'
+            # if the returned SDT is after now,
+            # check that it's the next scheduled departure
             elsif avail_time >= Time.now && avail_time != next_time
-              report_incorrect_departure route_number, headsign, next_time, avail_time, 'future'
-               end
+              report_incorrect_departure route_number, headsign,
+                                         next_time, avail_time, 'future'
+            end
           else report_missing_route route_number, headsign, next_time
           end
         end
@@ -57,14 +64,14 @@ module DepartureComparator
   end
 
   def report_feed_down
-    @messages << <<-message.strip_heredoc
+    @messages << <<~message
       The realtime feed is inaccessible via HTTP.
     message
     @statuses[:feed_down] = true
   end
 
   def report_missing_route(route_number, headsign, gtfs_time)
-    @messages << <<-message.strip_heredoc
+    @messages << <<~message
       Route #{route_number} with headsign #{headsign} is missing:
         Expected to be departing from Studio Arts Building
         Expected scheduled departure time #{email_format gtfs_time}
@@ -72,12 +79,12 @@ module DepartureComparator
     @statuses[:missing_routes] << route_number
   end
 
-  def report_incorrect_departure(route_number, headsign, gtfs_time, avail_time, type)
-    @messages << <<-message.strip_heredoc
-      Incorrect route #{route_number} departure with headsign #{headsign}:
+  def report_incorrect_departure(route_num, sign, gtfs_time, avail_time, type)
+    @messages << <<~message
+      Incorrect route #{route_num} departure with headsign #{sign}:
         Saw #{type} departure time, expected to be #{email_format gtfs_time};
         Received #{email_format avail_time}
 		message
-    @statuses[:incorrect_times] << route_number
+    @statuses[:incorrect_times] << route_num
   end
 end
