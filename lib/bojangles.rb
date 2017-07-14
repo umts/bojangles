@@ -150,8 +150,8 @@ module Bojangles
   end
 
   def parse_json_unix_timestamp(timestamp)
-    matches = timestamp.match %r{/Date\((\d+)000-0(4|5)00\)/}
-    Time.at matches.captures.first.to_i
+    timestamp.match %r{/Date\((\d+)000-0(4|5)00\)/}
+    Time.at($1.to_i).utc.localtime("-0#{$2}:00").change sec: 0
   end
 
   def prepare!

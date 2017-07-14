@@ -43,7 +43,7 @@ describe DepartureComparator do
         expected_departure =
           'Expected to be departing from Studio Arts Building'
         expected_time =
-          "Expected scheduled departure time #{email_format @gtfs_time}"
+          "Expected SDT: #{email_format @gtfs_time}"
 
         report_missing_route @route_number, @headsign, @gtfs_time
         expect(@messages.last).to include route_and_headsign
@@ -56,10 +56,10 @@ describe DepartureComparator do
   describe 'report_incorrect_departure' do
     it 'adds incorrect_departure to statuses and messages' do
       route_and_headsign =
-        "Incorrect route #{@route_number} departure with headsign #{@headsign}:"
+        "Incorrect route #{@route_number} SDT with headsign #{@headsign}:"
       type = "Saw #{@type} departure time,"
       expected_time = "expected to be #{email_format @gtfs_time};"
-      avail_time = "Received #{email_format @avail_time}"
+      avail_time = "Received SDT #{email_format @avail_time}"
 
       report_incorrect_departure @route_number, @headsign, @gtfs_time,
                                  @avail_time, @type

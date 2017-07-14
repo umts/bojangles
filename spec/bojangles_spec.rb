@@ -267,6 +267,11 @@ describe Bojangles do
         expect(Bojangles.parse_json_unix_timestamp(timestamp).to_s)
           .to eql '2016-12-12 14:00:00 -0500'
       end
+      it 'strips seconds' do
+        timestamp = '/Date(1500061264000-0500)/'
+        expect(Bojangles.parse_json_unix_timestamp(timestamp).to_s)
+          .to eql '2017-07-14 15:41:00 -0500'
+      end
     end
   end
   describe 'message_html' do
