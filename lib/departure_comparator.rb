@@ -72,16 +72,16 @@ module DepartureComparator
     @messages << <<~message
       Route #{route_number} with headsign #{headsign} is missing:
         Expected to be departing from Studio Arts Building
-        Expected scheduled departure time #{email_format gtfs_time}
+        Expected SDT: #{email_format gtfs_time}
     message
     @statuses[:missing_routes] << route_number
   end
 
   def report_incorrect_departure(route_num, sign, gtfs_time, avail_time, type)
     @messages << <<~message
-      Incorrect route #{route_num} departure with headsign #{sign}:
+      Incorrect route #{route_num} SDT with headsign #{sign}:
         Saw #{type} departure time, expected to be #{email_format gtfs_time};
-        Received #{email_format avail_time}
+        Received SDT #{email_format avail_time}
 		message
     @statuses[:incorrect_times] << route_num
   end
