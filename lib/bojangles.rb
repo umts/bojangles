@@ -80,6 +80,12 @@ module Bojangles
     end
   end
 
+  def clear_error_cache!
+    if File.file? 'error_messages.json'
+      FileUtils.rm 'error_messages.json'
+    end
+  end
+
   # Fetch the cached error messages
   def cached_error_messages
     if File.file? 'error_messages.json'
@@ -106,6 +112,7 @@ module Bojangles
       update_log_file! to: { current_time: current_time,
                              new_error: new_error_messages }
       cache_error_messages!(new_error_messages)
+    else clear_error_cache!
     end
     if resolved_error_messages.present?
       MAIL_SETTINGS[:html_body] = message_html(resolved_error_messages,
@@ -150,8 +157,8 @@ module Bojangles
   end
 
   def parse_json_unix_timestamp(timestamp)
-    timestamp.match %r{/Date\((\d+)000-0(4|5)00\)/}
-    Time.at($1.to_i).utc.localtime("-0#{$2}:00").change sec: 0
+    timestamp.match %r{/Date\((\d+)000-0[45]00\)/}
+    Time.at($1.to_i).utc.change sec: 0
   end
 
   def prepare!
