@@ -6,7 +6,6 @@ require 'digest'
 require 'json'
 require 'net/http'
 require 'pony'
-require 'pry-byebug'
 
 require_relative 'departure_comparator'
 include DepartureComparator
