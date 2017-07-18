@@ -9,6 +9,7 @@ require 'zipruby'
 module GtfsParser
   LOCAL_GTFS_DIR = File.expand_path('../../gtfs/', __FILE__)
   CACHE_FILE = 'cached_departures.json'
+  STOP_CACHE_FILE = 'cached_stops.json'
   GTFS_PROTOCOL = 'http://'
   GTFS_HOST = 'pvta.com'
   GTFS_PATH = '/g_trans/google_transit.zip'
@@ -17,7 +18,8 @@ module GtfsParser
   def prepare(stops)
     zip_log_file!
     get_new_files! unless files_up_to_date?
-    cache_departures!(stops)
+    stop_ids = cache_stop_ids!(stops)
+    cache_departures!(stop_ids)
   end
 
   # Returns a hash which you can query by route number and direction,
@@ -53,6 +55,24 @@ module GtfsParser
     File.open CACHE_FILE, 'w' do |file|
       file.puts departures.to_json
     end
+  end
+
+  def cache_stop_ids!(stop_names)
+    stop_ids = {}
+    filename = [LOCAL_GTFS_DIR, 'stops.txt'].join '/'
+    CSV.foreach filename, headers: true do |row|
+      stop_name = row.fetch('stop_name').strip
+      next unless stop_names.include? stop_name
+      stop_ids[row.fetch('stop_id')] = stop_name
+    end
+    File.open STOP_CACHE_FILE, 'w' do |file|
+      file.puts stop_ids.to_json
+    end
+    stop_ids.keys
+  end
+
+  def cached_stop_ids
+    JSON.parse File.read(STOP_CACHE_FILE)
   end
 
   # Zip yesterday's log file into an archive directory,
@@ -118,18 +138,6 @@ module GtfsParser
     entries
   end
 
-  # Find the ID of the stop whose name is given
-  def find_stop_id(stop_name)
-    filename = [LOCAL_GTFS_DIR, 'stops.txt'].join '/'
-    stop = {}
-    CSV.foreach filename, headers: true do |row|
-      if row.fetch('stop_name').include? stop_name
-        stop = row
-        break
-      end
-    end
-    stop.fetch 'stop_id'
-  end
 
   # Returns a hash which is keyed by trip ID,
   # and which stores the trip's route ID, direction, and headsign
@@ -152,11 +160,10 @@ module GtfsParser
   # find the departures at that route.
   # This is a hash keyed by route ID, direction, and headsign,
   # and which stores a sorted array of departure times.
-  def find_departures(stops)
+  def find_departures(stop_ids)
     filename = [LOCAL_GTFS_DIR, 'stop_times.txt'].join '/'
     departures = {}
-    stops.each do |stop|
-      stop_id = find_stop_id(stop)
+    stop_ids.each do |stop_id|
       trips = find_trips_operating_today(stop_id)
       # Track the indices so that for each row,
       # we can always include the row after it.

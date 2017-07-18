@@ -100,39 +100,33 @@ module Bojangles
     current_time = Time.now
     new_error_messages = error_messages - cached_error_messages
     resolved_error_messages = cached_error_messages - error_messages
+    MAIL_SETTINGS[:html_body] = message_html(new_error_messages,
+                                             resolved_error_messages)
+    if CONFIG['environment'] == 'development'
+      MAIL_SETTINGS[:via] = :smtp
+      MAIL_SETTINGS[:via_options] = { address: 'localhost', port: 1025 }
+    end
+    Pony.mail MAIL_SETTINGS
     if new_error_messages.present?
-      MAIL_SETTINGS[:html_body] = message_html(new_error_messages,
-                                               current: true)
-      if CONFIG['environment'] == 'development'
-        MAIL_SETTINGS[:via] = :smtp
-        MAIL_SETTINGS[:via_options] = { address: 'localhost', port: 1025 }
-      end
-      Pony.mail MAIL_SETTINGS
+      cache_error_messages!(new_error_messages)
       update_log_file! to: { current_time: current_time,
                              new_error: new_error_messages }
-      cache_error_messages!(new_error_messages)
     else clear_error_cache!
-    end
-    if resolved_error_messages.present?
-      MAIL_SETTINGS[:html_body] = message_html(resolved_error_messages,
-                                               current: false)
-      if CONFIG['environment'] == 'development'
-        MAIL_SETTINGS[:via] = :smtp
-        MAIL_SETTINGS[:via_options] = { address: 'localhost', port: 1025 }
-      end
-      Pony.mail MAIL_SETTINGS
-      update_log_file! to: { current_time: current_time,
-                             error_resolved: resolved_error_messages }
     end
   end
   # rubocop:enable Style/GuardClause
 
-  def message_html(error_messages, current:)
+  def message_html(new_errors, resolved_errors)
     message = [<<~MESSAGE.tr("\n", ' ')]
       This message brought to you by Bojangles, UMass Transit's monitoring
       service for the PVTA realtime bus departures feed.
     MESSAGE
-    message << message_list(error_messages, current: current)
+    if new_errors.present?
+      message << message_list(new_errors, current: true)
+    end
+    if resolved_errors.present?
+      message << message_list(resolved_errors, current: false)
+    end
     message.flatten.join '<br>'
   end
 
@@ -157,7 +151,7 @@ module Bojangles
 
   def parse_json_unix_timestamp(timestamp)
     timestamp.match %r{/Date\((\d+)000-0[45]00\)/}
-    Time.at($1.to_i).utc.change sec: 0
+    Time.at($1.to_i).change sec: 0
   end
 
   def prepare!

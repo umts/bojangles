@@ -29,10 +29,12 @@ module DepartureComparator
     rescue SocketError
       report_feed_down
     end
+    stop_ids = cached_stop_ids
     # Look through each scheduled route,
     # and make sure that each route is present,
     # and that the next reported departure has the correct scheduled time.
     gtfs_times.each_pair do |stop_id, gtfs_object|
+      stop_name = cached_stop_ids[stop_id]
       gtfs_object.each do	|route_data, (headsign, last_time, next_time)|
         route_number, _direction_id = route_data
         if avail_times.key? [route_number, headsign, stop_id]
@@ -41,15 +43,15 @@ module DepartureComparator
           # check that it's the last scheduled departure from the stop
           # (i.e. the bus is running late).
           if avail_time < Time.now && avail_time != last_time
-            report_incorrect_departure route_number, headsign,
+            report_incorrect_departure route_number, headsign, stop_name,
                                        last_time, avail_time, 'past'
           # if the returned SDT is after now,
           # check that it's the next scheduled departure
           elsif avail_time >= Time.now && avail_time != next_time
-            report_incorrect_departure route_number, headsign,
+            report_incorrect_departure route_number, headsign, stop_name,
                                        next_time, avail_time, 'future'
           end
-        else report_missing_route route_number, headsign, next_time
+        else report_missing_route route_number, headsign, stop_name, next_time
         end
       end
     end
@@ -68,18 +70,18 @@ module DepartureComparator
     @statuses[:feed_down] = true
   end
 
-  def report_missing_route(route_number, headsign, gtfs_time)
+  def report_missing_route(route_number, headsign, stop_name, gtfs_time)
     @messages << <<~message
       Route #{route_number} with headsign #{headsign} is missing:
-        Expected to be departing from Studio Arts Building
+        Expected to be departing from #{stop_name}
         Expected SDT: #{email_format gtfs_time}
     message
     @statuses[:missing_routes] << route_number
   end
 
-  def report_incorrect_departure(route_num, sign, gtfs_time, avail_time, type)
+  def report_incorrect_departure(route_num, sign, stop_name, gtfs_time, avail_time, type)
     @messages << <<~message
-      Incorrect route #{route_num} SDT with headsign #{sign}:
+      Incorrect route #{route_num} SDT at #{stop_name} with headsign #{sign}:
         Saw #{type} departure time, expected to be #{email_format gtfs_time};
         Received SDT #{email_format avail_time}
 		message
