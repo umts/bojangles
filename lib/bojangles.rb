@@ -96,7 +96,7 @@ module Bojangles
   # Wouldn't make sense to have an if statement and then a guard clause.
   # rubocop:disable Style/GuardClause
   def go!
-    error_messages, _statuses = DepartureComparator.compare
+    error_messages = DepartureComparator.compare
     current_time = Time.now
     new_error_messages = error_messages - cached_error_messages
     resolved_error_messages = cached_error_messages - error_messages

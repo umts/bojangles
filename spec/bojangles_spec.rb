@@ -17,10 +17,7 @@ describe Bojangles do
     end
     context 'with new error messages' do
       it 'updates the log and caches error messages' do
-        DepartureComparator.stub(:compare) do
-          [['error'],
-           { feed_down: false, missing_routes: [39], incorrect_times: [39] }]
-        end
+        DepartureComparator.stub(:compare) { %w[error] }
         expect_any_instance_of(Bojangles)
           .to receive :update_log_file!
         expect_any_instance_of(Bojangles)
@@ -30,10 +27,7 @@ describe Bojangles do
     end
     context 'with old error messages' do
       it 'does nothing' do
-        DepartureComparator.stub(:compare) do
-          [['error'],
-           { feed_down: false, missing_routes: [39], incorrect_times: [39] }]
-        end
+        DepartureComparator.stub(:compare) { %w[error] }
         Bojangles.stub(:cached_error_messages) do
           ['error']
         end
@@ -44,10 +38,7 @@ describe Bojangles do
     end
     context 'without error messages' do
       it 'does nothing' do
-        DepartureComparator.stub(:compare) do
-          [[],
-           { feed_down: false, missing_routes: [], incorrect_times: [] }]
-        end
+        DepartureComparator.stub(:compare) { [] }
         expect_any_instance_of(Bojangles)
           .not_to receive :anything
         Bojangles.go!
@@ -270,7 +261,7 @@ describe Bojangles do
       it 'strips seconds' do
         timestamp = '/Date(1500061264000-0500)/'
         expect(Bojangles.parse_json_unix_timestamp(timestamp).to_s)
-          .to eql '2017-07-14 15:41:00 -0500'
+          .to include '2017-07-14 15:41:00'
       end
     end
   end

@@ -13,15 +13,10 @@ module DepartureComparator
   # departures on a given route?
   DEPARTURE_FUTURE_HOURS = 3
 
-  # Returns an array of messages and of statuses by comparing the GTFS
+  # Returns an array of messages and by comparing the GTFS
   # scheduled departures to the departures returned by the Avail endpoint
   def compare
     @messages = []
-    @statuses = {
-      feed_down: false,
-      missing_routes: [],
-      incorrect_times: []
-    }
     gtfs_times = soonest_departures_within DEPARTURE_FUTURE_HOURS * 60
     stop_ids = gtfs_times.keys
     begin
@@ -34,7 +29,7 @@ module DepartureComparator
     # and make sure that each route is present,
     # and that the next reported departure has the correct scheduled time.
     gtfs_times.each_pair do |stop_id, gtfs_object|
-      stop_name = cached_stop_ids[stop_id]
+      stop_name = stop_ids[stop_id]
       gtfs_object.each do	|route_data, (headsign, last_time, next_time)|
         route_number, _direction_id = route_data
         if avail_times.key? [route_number, headsign, stop_id]
@@ -55,7 +50,7 @@ module DepartureComparator
         end
       end
     end
-    [@messages, @statuses]
+    @messages
   end
 
   # a nicer-looking format of a time.
@@ -67,7 +62,6 @@ module DepartureComparator
     @messages << <<~message
       The realtime feed is inaccessible via HTTP.
     message
-    @statuses[:feed_down] = true
   end
 
   def report_missing_route(route_number, headsign, stop_name, gtfs_time)
@@ -76,7 +70,6 @@ module DepartureComparator
         Expected to be departing from #{stop_name}
         Expected SDT: #{email_format gtfs_time}
     message
-    @statuses[:missing_routes] << route_number
   end
 
   def report_incorrect_departure(route_num, sign, stop_name, gtfs_time, avail_time, type)
@@ -85,6 +78,5 @@ module DepartureComparator
         Saw #{type} departure time, expected to be #{email_format gtfs_time};
         Received SDT #{email_format avail_time}
 		message
-    @statuses[:incorrect_times] << route_num
   end
 end
