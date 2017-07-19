@@ -15,7 +15,10 @@ Metrics/MethodLength:
   Max: 32
 
 Metrics/ModuleLength:
-  Max: 178
+  Enabled: false
+
+Metrics/ParameterLists:
+  Max: 6
 
 Metrics/PerceivedComplexity:
   Max: 9

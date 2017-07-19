@@ -80,9 +80,8 @@ module Bojangles
   end
 
   def clear_error_cache!
-    if File.file? 'error_messages.json'
-      FileUtils.rm 'error_messages.json'
-    end
+    return unless File.file? 'error_messages.json'
+    FileUtils.rm 'error_messages.json'
   end
 
   # Fetch the cached error messages
@@ -93,8 +92,6 @@ module Bojangles
     end
   end
 
-  # Wouldn't make sense to have an if statement and then a guard clause.
-  # rubocop:disable Style/GuardClause
   def go!
     error_messages = DepartureComparator.compare
     current_time = Time.now
@@ -116,8 +113,8 @@ module Bojangles
     else clear_error_cache!
     end
   end
-  # rubocop:enable Style/GuardClause
 
+  # rubocop:disable Style/IfUnlessModifier
   def message_html(new_errors, resolved_errors)
     message = [<<~MESSAGE.tr("\n", ' ')]
       This message brought to you by Bojangles, UMass Transit's monitoring
@@ -131,6 +128,7 @@ module Bojangles
     end
     message.flatten.join '<br>'
   end
+  # rubocop:enable Style/IfUnlessModifier
 
   def message_list(error_messages, current:)
     heading = if current
@@ -152,8 +150,9 @@ module Bojangles
   end
 
   def parse_json_unix_timestamp(timestamp)
-    timestamp.match %r{/Date\((\d+)000-0[45]00\)/}
-    Time.at($1.to_i).change sec: 0
+    match_data = timestamp.match %r{/Date\((\d+)000-0[45]00\)/}
+    timestamp = match_data.captures.first.to_i
+    Time.at(timestamp).change sec: 0
   end
 
   def prepare!

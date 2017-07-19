@@ -138,7 +138,6 @@ module GtfsParser
     entries
   end
 
-
   # Returns a hash which is keyed by trip ID,
   # and which stores the trip's route ID, direction, and headsign
   def find_trips_operating_today(stop_id)

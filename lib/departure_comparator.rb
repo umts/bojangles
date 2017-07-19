@@ -72,7 +72,8 @@ module DepartureComparator
     message
   end
 
-  def report_incorrect_departure(route_num, sign, stop_name, gtfs_time, avail_time, type)
+  def report_incorrect_departure(route_num, sign, stop_name,
+                                 gtfs_time, avail_time, type)
     @messages << <<~message
       Incorrect route #{route_num} SDT at #{stop_name} with headsign #{sign}:
         Saw #{type} departure time, expected to be #{email_format gtfs_time};

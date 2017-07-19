@@ -53,8 +53,9 @@ describe DepartureComparator do
   end
   describe 'report_incorrect_departure' do
     it 'adds incorrect_departure to messages' do
-      route_and_headsign =
-        "Incorrect route #{@route_number} SDT at #{@stop_name} with headsign #{@headsign}:"
+      route_and_headsign = "Incorrect route #{@route_number}"
+      route_and_headsign += " SDT at #{@stop_name}"
+      route_and_headsign += " with headsign #{@headsign}:"
       type = "Saw #{@type} departure time,"
       expected_time = "expected to be #{email_format @gtfs_time};"
       avail_time = "Received SDT #{email_format @avail_time}"
@@ -79,7 +80,7 @@ describe DepartureComparator do
           .and_return(['31', 'North Amherst', 79] => early_sdt_time)
         expect_any_instance_of(GtfsParser)
           .to receive(:cached_stop_ids)
-          .and_return({ 79 => 'My Awesome Stop' })
+          .and_return(79 => 'My Awesome Stop')
         last_time = Time.new(2016, 12, 12, 13, 53)
         next_time = Time.new(2016, 12, 12, 14, 8)
         expect_any_instance_of(GtfsParser)
@@ -89,7 +90,8 @@ describe DepartureComparator do
                                            next_time] })
         expect_any_instance_of(DepartureComparator)
           .to receive(:report_incorrect_departure)
-          .with('31', 'North Amherst', 'My Awesome Stop', last_time, early_sdt_time, 'past')
+          .with('31', 'North Amherst', 'My Awesome Stop',
+                last_time, early_sdt_time, 'past')
           .and_return(@messages)
 
         expect(compare).to match_array(@messages)
@@ -106,7 +108,7 @@ describe DepartureComparator do
           .and_return(['31', 'North Amherst', 79] => late_sdt_time)
         expect_any_instance_of(GtfsParser)
           .to receive(:cached_stop_ids)
-          .and_return({ 79 => 'My Awesome Stop' })
+          .and_return(79 => 'My Awesome Stop')
         last_time2 = Time.new(2016, 12, 12, 13, 53)
         next_time2 = Time.new(2016, 12, 12, 14, 8)
         expect_any_instance_of(GtfsParser)
@@ -116,7 +118,8 @@ describe DepartureComparator do
                                            next_time2] })
         expect_any_instance_of(DepartureComparator)
           .to receive(:report_incorrect_departure)
-          .with('31', 'North Amherst', 'My Awesome Stop', next_time2, late_sdt_time, 'future')
+          .with('31', 'North Amherst', 'My Awesome Stop',
+                next_time2, late_sdt_time, 'future')
           .and_return(@messages)
 
         expect(compare).to match_array(@messages)
