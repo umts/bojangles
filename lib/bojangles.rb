@@ -100,13 +100,15 @@ module Bojangles
     current_time = Time.now
     new_error_messages = error_messages - cached_error_messages
     resolved_error_messages = cached_error_messages - error_messages
-    MAIL_SETTINGS[:html_body] = message_html(new_error_messages,
-                                             resolved_error_messages)
-    if CONFIG['environment'] == 'development'
-      MAIL_SETTINGS[:via] = :smtp
-      MAIL_SETTINGS[:via_options] = { address: 'localhost', port: 1025 }
+    if new_error_messages.present? || resolved_error_messages.present?
+      MAIL_SETTINGS[:html_body] = message_html(new_error_messages,
+                                               resolved_error_messages)
+      if CONFIG['environment'] == 'development'
+        MAIL_SETTINGS[:via] = :smtp
+        MAIL_SETTINGS[:via_options] = { address: 'localhost', port: 1025 }
+      end
+      Pony.mail MAIL_SETTINGS
     end
-    Pony.mail MAIL_SETTINGS
     if new_error_messages.present?
       cache_error_messages!(new_error_messages)
       update_log_file! to: { current_time: current_time,
