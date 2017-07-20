@@ -79,11 +79,6 @@ module Bojangles
     end
   end
 
-  def clear_error_cache!
-    return unless File.file? 'error_messages.json'
-    FileUtils.rm 'error_messages.json'
-  end
-
   # Fetch the cached error messages
   def cached_error_messages
     if File.file? 'error_messages.json'
@@ -106,11 +101,10 @@ module Bojangles
       end
       Pony.mail MAIL_SETTINGS
     end
+    cache_error_messages!(error_messages)
     if new_error_messages.present?
-      cache_error_messages!(new_error_messages)
       update_log_file! to: { current_time: current_time,
                              new_error: new_error_messages }
-    else clear_error_cache!
     end
   end
 
