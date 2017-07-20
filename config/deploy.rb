@@ -12,6 +12,8 @@ set :whenever_command, %i[sudo bundle exec whenever]
 
 set :linked_files, fetch(:linked_files, []).push(
   'cached_departures.json',
+  'cached_stops.json',
+  'error_messages.json',
   'config.json',
   'route_mappings.json'
 )
