@@ -106,6 +106,7 @@ module GtfsParser
   # Is the remote GTFS archive more recent than our cached files?
   def files_up_to_date?
     return false unless File.directory? LOCAL_GTFS_DIR
+    return false unless File.file? CACHE_FILE
     http = Net::HTTP.new GTFS_HOST
     begin
       response = http.head GTFS_PATH
