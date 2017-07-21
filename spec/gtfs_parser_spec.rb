@@ -20,7 +20,7 @@ describe GtfsParser do
           .and_return('trip_id1' => :route_data1, 'trip_id2' => :route_data2)
         row0 = { 'trip_id' => 'trip_id1', 'stop_id' => 'something else' }
         # row1 marks the end of a trip. Since the trip ends at the stop, it is
-        # not a departure and should not be counted.
+        # not a departure and should not be included.
         row1 = { 'trip_id' => 'trip_id1', 'stop_id' => 'stop_id',
                  'departure_time' => '07:41:00'}
         # row2 is the beginning of a trip, so a perfectly legitimate departure,
