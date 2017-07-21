@@ -128,6 +128,7 @@ describe Bojangles do
   end
   describe 'cached_error_messages' do
     context 'without an error messages file' do
+      before(:each) { FileUtils.rm 'error_messages.json' }
       it 'returns an empty array' do
         expect(File.file?('error_messages.json')).to be false
         expect(Bojangles.cached_error_messages).to eql []
