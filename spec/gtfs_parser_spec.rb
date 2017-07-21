@@ -13,7 +13,7 @@ describe GtfsParser do
         expect(result[%w[31 31 0 Sunderland]]).is_a? Array
       end
     end
-    context 'with a trip ending at a stop and then beginning at the stop' do
+    context 'with a trip ending at a stop and another beginning at the stop' do
       it 'does not throw out the departure at the start of the trip' do
         expect_any_instance_of(GtfsParser)
           .to receive(:find_trips_operating_today).with('stop_id')
