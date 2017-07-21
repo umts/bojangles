@@ -14,6 +14,7 @@ describe GtfsParser do
       end
     end
     context 'with a trip ending at a stop and another beginning at the stop' do
+      let(:result) { find_departures(%w[stop_id]) }
       it 'does not throw out the departure at the start of the trip' do
         expect_any_instance_of(GtfsParser)
           .to receive(:find_trips_operating_today).with('stop_id')
@@ -34,7 +35,6 @@ describe GtfsParser do
         expect(iterator).to receive(:with_index)
           .and_yield(row0, 0).and_yield(row1, 1)
           .and_yield(row2, 2).and_yield(row3, 3)
-        result = find_departures(%w[stop_id])
         expect(result).not_to be_empty
         expect(result).to eql route_data2: ['08:21:00']
       end
