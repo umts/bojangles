@@ -301,4 +301,25 @@ describe Bojangles do
       end
     end
   end
+
+  describe 'compare_errors' do
+    let(:message) { %w[apple banana cashew].join "\n" }
+    let(:different_message) { %w[apple barley cashew].join "\n" }
+    let(:equivalent_message) { %w[apple banana carrot].join "\n" }
+    
+    let(:result) { Bojangles.compare_errors current, old }
+    let(:current) { [message] }
+    context 'messages differ by one of the first two lines' do
+      let(:old) { [different_message] }
+      it 'reports the difference' do
+        expect(result).to eql([[message], [different_message]])
+      end
+    end
+    context 'messages differ after the first two lines' do
+      let(:old) { [equivalent_message] }
+      it 'passes on by' do
+        expect(result).to eql([[], []]) # looks like an owl
+      end
+    end
+  end
 end
