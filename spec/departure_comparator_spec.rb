@@ -44,10 +44,19 @@ describe DepartureComparator do
         expected_time =
           "Expected SDT: #{email_format @gtfs_time}"
 
-        report_missing_route @route_number, @headsign, @stop_name, @gtfs_time
+        report_missing_route @route_number, @headsign, @stop_name, @gtfs_time,
+                             []
         expect(@messages.last).to include route_and_headsign
         expect(@messages.last).to include expected_departure
         expect(@messages.last).to include expected_time
+      end
+    end
+    context 'with alternative headsigns' do
+      it 'suggests alternatives' do
+        alternative = "Found alternative: Another Destination"
+        report_missing_route @route_number, @headsign, @stop_name, @gtfs_time,
+                             ['Another Destination']
+        expect(@messages.last).to include alternative
       end
     end
   end
