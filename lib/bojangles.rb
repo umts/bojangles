@@ -87,24 +87,36 @@ module Bojangles
     end
   end
 
+  # Only the first two lines of an error message need to match for us to decide
+  # that we've already sent it.
+  def compare_errors(current_errors, old_errors)
+    new_errors = current_errors.reject do |error|
+      old_errors.any?{|old| error.lines.first(2) == old.lines.first(2) }
+    end
+    resolved_errors = old_errors.reject do |error|
+      current_errors.any?{|new| error.lines.first(2) == new.lines.first(2) }
+    end
+    [new_errors, resolved_errors]
+  end
+
+  # rubocop:disable Style/GuardClause
   def go!
-    error_messages = DepartureComparator.compare
+    errors = DepartureComparator.compare
     current_time = Time.now
-    new_error_messages = error_messages - cached_error_messages
-    resolved_error_messages = cached_error_messages - error_messages
-    if new_error_messages.present? || resolved_error_messages.present?
-      MAIL_SETTINGS[:html_body] = message_html(new_error_messages,
-                                               resolved_error_messages)
+    new_errors, resolved_errors = compare_errors(errors, cached_error_messages)
+    if new_errors.present? || resolved_errors.present?
+      MAIL_SETTINGS[:html_body] = message_html(new_errors,
+                                               resolved_errors)
       if CONFIG['environment'] == 'development'
         MAIL_SETTINGS[:via] = :smtp
         MAIL_SETTINGS[:via_options] = { address: 'localhost', port: 1025 }
       end
       Pony.mail MAIL_SETTINGS
     end
-    cache_error_messages!(error_messages)
-    if new_error_messages.present?
+    cache_error_messages!(errors)
+    if new_errors.present?
       update_log_file! to: { current_time: current_time,
-                             new_error: new_error_messages }
+                             new_error: new_errors }
     end
   end
 
