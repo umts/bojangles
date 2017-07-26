@@ -1,5 +1,6 @@
 gtfs/**/*
 cached_departures.json
+cached_stops.json
 emailed_status.json
 route_mappings.json
 error_messages.json

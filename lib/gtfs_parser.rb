@@ -127,13 +127,11 @@ module GtfsParser
     weekday = weekday_columns[todays_date.wday]
     CSV.foreach filename, headers: true do |row|
       service_id = row.fetch('service_id')
-      if service_id.include? 'UMTS'
-        # that is to say, if the service type runs today
-        if row.fetch(weekday) == '1'
-          start_date = Date.parse row.fetch('start_date')
-          end_date = Date.parse row.fetch('end_date')
-          entries << service_id if (start_date..end_date).cover?(Date.today)
-        end
+      # that is to say, if the service type runs today
+      if row.fetch(weekday) == '1'
+        start_date = Date.parse row.fetch('start_date')
+        end_date = Date.parse row.fetch('end_date')
+        entries << service_id if (start_date..end_date).cover?(Date.today)
       end
     end
     entries
