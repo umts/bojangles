@@ -8,8 +8,8 @@ describe GtfsParser do
       let(:result) { find_departures(%w[stop_id]) }
       it 'does not throw out the departure at the start of the trip' do
         expect_any_instance_of(GtfsParser)
-          .to receive(:find_trips_operating_today).with(%w[stop_id])
-          .and_return('trip_id1' => :route_data1, 'trip_id2' => :route_data2)
+          .to receive(:find_trips_operating_today)
+          .and_return('trip_id1' => [:route_data1], 'trip_id2' => [:route_data2])
         row0 = { 'trip_id' => 'trip_id1', 'stop_id' => 'something else',
                  'departure_time' => '07:40:00' }
         # row1 marks the end of a trip. Since the trip ends at the stop, it is
@@ -25,7 +25,7 @@ describe GtfsParser do
         expect(CSV).to receive(:foreach).with(anything, headers: true)
           .and_yield(row0).and_yield(row1).and_yield(row2).and_yield(row3)
         expect(result).not_to be_empty
-        expect(result).to eql route_data2: ['08:21:00']
+        expect(result).to eql ['stop_id', :route_data2] => ['08:21:00']
       end
     end
   end

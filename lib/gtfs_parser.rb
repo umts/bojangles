@@ -139,18 +139,15 @@ module GtfsParser
 
   # Returns a hash which is keyed by trip ID,
   # and which stores the trip's route ID, direction, and headsign
-  def find_trips_operating_today(stop_ids)
+  def find_trips_operating_today
     service_ids = find_service_ids_today
     filename = [LOCAL_GTFS_DIR, 'trips.txt'].join '/'
     trips = {}
     CSV.foreach filename, headers: true do |row|
       if service_ids.include? row.fetch('service_id')
-        stop_ids.each do |stop_id|
-          trips[row.fetch 'trip_id'] = [stop_id,
-                                        row.fetch('route_id'),
-                                        row.fetch('direction_id'),
-                                        row.fetch('trip_headsign')]
-        end
+        trips[row.fetch 'trip_id'] = [row.fetch('route_id'),
+                                      row.fetch('direction_id'),
+                                      row.fetch('trip_headsign')]
       end
     end
     trips
@@ -162,9 +159,9 @@ module GtfsParser
   # and which stores a sorted array of departure times.
   def find_departures(stop_ids)
     filename = [LOCAL_GTFS_DIR, 'stop_times.txt'].join '/'
-    trips = find_trips_operating_today(stop_ids)
-    # Start by grabbing all of the trip stops for any matching trip.
+    trips = find_trips_operating_today
     trip_stops = {}
+    # Start by grabbing all of the trip stops for any matching trip.
     CSV.foreach(filename, headers: true) do |row|
       trip_id = row.fetch 'trip_id'
       if trips.key? trip_id
@@ -179,13 +176,14 @@ module GtfsParser
     # is just an arrival, not a departure.
     departures = {}
     trip_stops.each_pair do |trip_id, stops|
-      sorted_stops = stops.sort_by do |stop_id, time|
+      sorted_stops = stops.sort_by do |stop, time|
         parse_time(time)
       end
       sorted_stops.pop
-      sorted_stops.each do |stop_id, time|
-        if stop_ids.include? stop_id
+      sorted_stops.each do |stop, time|
+        if stop_ids.include? stop
           route_data = trips[trip_id]
+          route_data.unshift stop
           existing_deps = departures[route_data] || []
           existing_deps << time
           departures[route_data] = existing_deps.sort_by(&method(:parse_time))
