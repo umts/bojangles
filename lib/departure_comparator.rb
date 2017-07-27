@@ -74,18 +74,18 @@ module DepartureComparator
   end
 
   def report_feed_down
-    @messages << <<~message
+    @messages << <<~ERROR
       The realtime feed is inaccessible via HTTP.
-    message
+    ERROR
   end
 
   def report_missing_route(route_number, headsign, stop_name,
                            gtfs_time, other_headsigns)
-    message = <<~message
+    message = <<~ERROR
       Route #{route_number} with headsign #{headsign} is missing:
         Expected to be departing from #{stop_name}
         Expected SDT: #{email_format gtfs_time}
-    message
+    ERROR
     if other_headsigns.length == 1
       message += "  Found alternative: #{other_headsigns.first}"
     elsif other_headsigns.length > 1
@@ -96,10 +96,10 @@ module DepartureComparator
 
   def report_incorrect_departure(route_num, sign, stop_name,
                                  gtfs_time, avail_time, type)
-    @messages << <<~message
+    @messages << <<~ERROR
       Incorrect route #{route_num} SDT at #{stop_name} with headsign #{sign}:
         Saw #{type} departure time, expected to be #{email_format gtfs_time};
         Received SDT #{email_format avail_time}
-		message
+		ERROR
   end
 end
