@@ -91,10 +91,10 @@ module Bojangles
   # that we've already sent it.
   def compare_errors(current_errors, old_errors)
     new_errors = current_errors.reject do |error|
-      old_errors.any?{|old| error.lines.first(2) == old.lines.first(2) }
+      old_errors.any? { |old| error.lines.first(2) == old.lines.first(2) }
     end
     resolved_errors = old_errors.reject do |error|
-      current_errors.any?{|new| error.lines.first(2) == new.lines.first(2) }
+      current_errors.any? { |new| error.lines.first(2) == new.lines.first(2) }
     end
     [new_errors, resolved_errors]
   end

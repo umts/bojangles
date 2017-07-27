@@ -306,7 +306,7 @@ describe Bojangles do
     let(:message) { %w[apple banana cashew].join "\n" }
     let(:different_message) { %w[apple barley cashew].join "\n" }
     let(:equivalent_message) { %w[apple banana carrot].join "\n" }
-    
+
     let(:result) { Bojangles.compare_errors current, old }
     let(:current) { [message] }
     context 'messages differ by one of the first two lines' do
