@@ -10,6 +10,7 @@ gem 'zipruby'
 
 group :development, :test do
   gem 'capistrano', require: false
+  gem 'capistrano-bundler', require: false
   gem 'pry-byebug', require: false
   gem 'rspec'
   gem 'rubocop'
