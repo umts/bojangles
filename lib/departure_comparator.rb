@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-# frozen_string_literal: true
 
 require 'active_support/core_ext/string/strip'
 
@@ -12,6 +11,17 @@ module DepartureComparator
   # How many hours in the future can we expect the realtime feed to return
   # departures on a given route?
   DEPARTURE_FUTURE_HOURS = 3
+
+  # Finds the other headsigns leaving from the stop on the route
+  # rubocop:disable Style/MultilineBlockChain
+  def alternative_headsigns(sign_data, route_number, stop_id)
+    sign_data.select do |route, _headsign, stop|
+      route == route_number && stop == stop_id
+    end.map do |_route, headsign, _stop|
+      headsign
+    end
+  end
+  # rubocop:enable Style/MultilineBlockChain
 
   # Returns an array of messages and by comparing the GTFS
   # scheduled departures to the departures returned by the Avail endpoint
@@ -46,7 +56,12 @@ module DepartureComparator
             report_incorrect_departure route_number, headsign, stop_name,
                                        next_time, avail_time, 'future'
           end
-        else report_missing_route route_number, headsign, stop_name, next_time
+        else
+          other_headsigns = alternative_headsigns(avail_times.keys,
+                                                  route_number,
+                                                  stop_id)
+          report_missing_route route_number, headsign, stop_name, next_time,
+                               other_headsigns
         end
       end
     end
@@ -59,25 +74,32 @@ module DepartureComparator
   end
 
   def report_feed_down
-    @messages << <<~message
+    @messages << <<~ERROR
       The realtime feed is inaccessible via HTTP.
-    message
+    ERROR
   end
 
-  def report_missing_route(route_number, headsign, stop_name, gtfs_time)
-    @messages << <<~message
+  def report_missing_route(route_number, headsign, stop_name,
+                           gtfs_time, other_headsigns)
+    message = <<~ERROR
       Route #{route_number} with headsign #{headsign} is missing:
         Expected to be departing from #{stop_name}
         Expected SDT: #{email_format gtfs_time}
-    message
+    ERROR
+    if other_headsigns.length == 1
+      message += "  Found alternative: #{other_headsigns.first}"
+    elsif other_headsigns.length > 1
+      message += "  Found alternatives: #{other_headsigns.join(', ')}"
+    end
+    @messages << message
   end
 
   def report_incorrect_departure(route_num, sign, stop_name,
                                  gtfs_time, avail_time, type)
-    @messages << <<~message
+    @messages << <<~ERROR
       Incorrect route #{route_num} SDT at #{stop_name} with headsign #{sign}:
         Saw #{type} departure time, expected to be #{email_format gtfs_time};
         Received SDT #{email_format avail_time}
-		message
+		ERROR
   end
 end
