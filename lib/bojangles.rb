@@ -87,6 +87,7 @@ module Bojangles
     end
   end
 
+  # rubocop:disable Style/GuardClause
   def go!
     error_messages = DepartureComparator.compare
     current_time = Time.now
@@ -107,6 +108,7 @@ module Bojangles
                              new_error: new_error_messages }
     end
   end
+  # rubocop:enable Style/GuardClause
 
   # rubocop:disable Style/IfUnlessModifier
   def message_html(new_errors, resolved_errors)

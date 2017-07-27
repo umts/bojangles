@@ -176,18 +176,17 @@ module GtfsParser
     # is just an arrival, not a departure.
     departures = {}
     trip_stops.each_pair do |trip_id, stops|
-      sorted_stops = stops.sort_by do |stop, time|
+      sorted_stops = stops.sort_by do |_stop, time|
         parse_time(time)
       end
       sorted_stops.pop
       sorted_stops.each do |stop, time|
-        if stop_ids.include? stop
-          route_data = trips[trip_id]
-          route_data.unshift stop
-          existing_deps = departures[route_data] || []
-          existing_deps << time
-          departures[route_data] = existing_deps.sort_by(&method(:parse_time))
-        end
+        next unless stop_ids.include? stop
+        route_data = trips[trip_id]
+        route_data.unshift stop
+        existing_deps = departures[route_data] || []
+        existing_deps << time
+        departures[route_data] = existing_deps.sort_by(&method(:parse_time))
       end
     end
     departures
