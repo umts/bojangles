@@ -119,6 +119,7 @@ module Bojangles
                              new_error: new_errors }
     end
   end
+  # rubocop:enable Style/GuardClause
 
   # rubocop:disable Style/IfUnlessModifier
   def message_html(new_errors, resolved_errors)
