@@ -13,11 +13,11 @@ include DepartureComparator
 # Bojangles is the main driver of the script, and is responsible
 # for communicating with the Avail realtime feed.
 module Bojangles
-  raise <<~MESSAGE unless File.file? 'config.json'
+  raise <<~MESSAGE unless File.file? 'config/config.json'
     No config file found. Please see the config.json.example file \
     and create a config.json file to match.
   MESSAGE
-  CONFIG = JSON.parse File.read('config.json')
+  CONFIG = JSON.parse File.read('config/config.json')
 
   PVTA_BASE_API_URL = 'http://bustracker.pvta.com/InfoPoint/rest'
   ROUTES_URI = URI([PVTA_BASE_API_URL, 'routes', 'getvisibleroutes'].join('/'))

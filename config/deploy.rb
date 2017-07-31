@@ -14,7 +14,7 @@ set :linked_files, fetch(:linked_files, []).push(
   'cached_departures.json',
   'cached_stops.json',
   'error_messages.json',
-  'config.json',
+  'config/config.json',
   'route_mappings.json'
 )
 
