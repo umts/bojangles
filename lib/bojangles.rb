@@ -19,8 +19,8 @@ module Bojangles
   MESSAGE
   CONFIG = JSON.parse File.read('config.json')
 
-  PVTA_API_URL = 'http://bustracker.pvta.com/InfoPoint/rest'
-  ROUTES_URI = URI([PVTA_API_URL, 'routes', 'getvisibleroutes'].join('/'))
+  PVTA_BASE_API_URL = 'http://bustracker.pvta.com/InfoPoint/rest'
+  ROUTES_URI = URI([PVTA_BASE_API_URL, 'routes', 'getvisibleroutes'].join('/'))
 
   MAIL_SETTINGS = CONFIG.fetch('mail_settings').symbolize_keys
 
@@ -46,7 +46,7 @@ module Bojangles
   end
 
   def departures_uri(stop_id)
-    URI([PVTA_API_URL, 'stopdepartures', 'get', stop_id].join('/'))
+    URI([PVTA_BASE_API_URL, 'stopdepartures', 'get', stop_id].join('/'))
   end
 
   # Return the hash mapping route number,
