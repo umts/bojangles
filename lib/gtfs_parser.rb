@@ -9,7 +9,8 @@ require 'zipruby'
 module GtfsParser
   LOCAL_GTFS_DIR = File.expand_path('../../gtfs/', __FILE__)
   CACHE_FILE = 'cached_departures.json'
-  STOP_CACHE_FILE = 'cached_stops.json'
+  STOP_NAMES_CACHE_FILE = 'cached_stop_names.json'
+  STOP_CODES_CACHE_FILE = 'cached_stop_codes.json'
   GTFS_PROTOCOL = 'http://'
   GTFS_HOST = 'pvta.com'
   GTFS_PATH = '/g_trans/google_transit.zip'
@@ -57,22 +58,33 @@ module GtfsParser
     end
   end
 
-  def cache_stop_ids!(stop_names)
-    stop_ids = {}
+  def cache_stop_ids!(stops)
+    stop_names = {}
+    stop_codes = {}
     filename = [LOCAL_GTFS_DIR, 'stops.txt'].join '/'
     CSV.foreach filename, headers: true do |row|
       stop_name = row.fetch('stop_name').strip
-      next unless stop_names.include? stop_name
-      stop_ids[row.fetch('stop_id')] = stop_name
+      next unless stops.include? stop_name
+      stop_id = row.fetch('stop_id')
+      stop_code = row.fetch('stop_code')
+      stop_codes[stop_id] = stop_code
+      stop_names[stop_code] = stop_name
     end
-    File.open STOP_CACHE_FILE, 'w' do |file|
-      file.puts stop_ids.to_json
+    File.open STOP_NAMES_CACHE_FILE, 'w' do |file|
+      file.puts stop_names.to_json
     end
-    stop_ids.keys
+    File.open STOP_CODES_CACHE_FILE, 'w' do |file|
+      file.puts stop_codes.to_json
+    end
+    stop_names.keys
   end
 
   def cached_stop_ids
-    JSON.parse File.read(STOP_CACHE_FILE)
+    JSON.parse File.read(STOP_NAMES_CACHE_FILE)
+  end
+
+  def cached_stop_codes
+    JSON.parse File.read(STOP_CODES_CACHE_FILE)
   end
 
   # Zip yesterday's log file into an archive directory,
@@ -151,6 +163,7 @@ module GtfsParser
   def find_departures(stop_ids)
     filename = [LOCAL_GTFS_DIR, 'stop_times.txt'].join '/'
     trips = find_trips_operating_today
+    stop_codes = cached_stop_codes
     trip_stops = {}
     # Start by grabbing all of the trip stops for any matching trip.
     CSV.foreach(filename, headers: true) do |row|
@@ -174,7 +187,8 @@ module GtfsParser
       sorted_stops.each do |stop, time|
         next unless stop_ids.include? stop
         route_data = trips[trip_id]
-        route_data.unshift stop
+        stop_code = stop_codes[stop]
+        route_data.unshift stop_code
         existing_deps = departures[route_data] || []
         existing_deps << time
         departures[route_data] = existing_deps.sort_by(&method(:parse_time))
