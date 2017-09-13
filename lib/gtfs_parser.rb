@@ -17,7 +17,7 @@ module GtfsParser
 
   def prepare(stops)
     zip_log_file!
-    get_new_files! unless files_up_to_date?
+    #get_new_files! unless files_up_to_date?
     stop_ids = cache_stop_ids!(stops)
     cache_departures!(stop_ids)
   end
