@@ -120,21 +120,12 @@ module GtfsParser
 
   # Find an array of the service IDs which are running today.
   def find_service_ids_today
-    filename = [LOCAL_GTFS_DIR, 'calendar.txt'].join '/'
-    entries = []
-    weekday_columns = %w[sunday monday tuesday wednesday
-                         thursday friday saturday]
-    weekday = weekday_columns[todays_date.wday]
+    filename = [LOCAL_GTFS_DIR, 'calendar_dates.txt'].join '/'
     CSV.foreach filename, headers: true do |row|
-      service_id = row.fetch('service_id')
-      # that is to say, if the service type runs today
-      if row.fetch(weekday) == '1'
-        start_date = Date.parse row.fetch('start_date')
-        end_date = Date.parse row.fetch('end_date')
-        entries << service_id if (start_date..end_date).cover?(Date.today)
+      if row.fetch('date') == Date.today.strftime('%Y%m%d')
+        return [row.fetch('service_id')]
       end
     end
-    entries
   end
 
   # Returns a hash which is keyed by trip ID,
