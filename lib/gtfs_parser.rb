@@ -11,6 +11,7 @@ module GtfsParser
   CACHE_FILE = 'cached_departures.json'
   STOP_NAMES_CACHE_FILE = 'cached_stop_names.json'
   STOP_CODES_CACHE_FILE = 'cached_stop_codes.json'
+  ROUTE_NAMES_CACHE_FILE = 'cached_route_names.json'
   GTFS_PROTOCOL = 'http://'
   GTFS_HOST = 'pvta.com'
   GTFS_PATH = '/g_trans/google_transit.zip'
@@ -19,6 +20,7 @@ module GtfsParser
   def prepare(stops)
     zip_log_file!
     #get_new_files! unless files_up_to_date?
+    cache_route_names!
     stop_ids = cache_stop_ids!(stops)
     cache_departures!(stop_ids)
   end
@@ -76,7 +78,24 @@ module GtfsParser
     File.open STOP_CODES_CACHE_FILE, 'w' do |file|
       file.puts stop_codes.to_json
     end
-    stop_names.keys
+    stop_codes.keys
+  end
+
+  def cache_route_names!
+    route_names = {}
+    filename = [LOCAL_GTFS_DIR, 'routes.txt'].join '/'
+    CSV.foreach filename, headers: true do |row|
+      route_id = row.fetch('route_id')
+      route_name = row.fetch('route_short_name')
+      route_names[route_id] = route_name
+    end
+    File.open ROUTE_NAMES_CACHE_FILE, 'w' do |file|
+      file.puts route_names.to_json
+    end
+  end
+
+  def cached_route_names
+    JSON.parse File.read(ROUTE_NAMES_CACHE_FILE)
   end
 
   def cached_stop_ids
@@ -146,9 +165,12 @@ module GtfsParser
     service_ids = find_service_ids_today
     filename = [LOCAL_GTFS_DIR, 'trips.txt'].join '/'
     trips = {}
+    route_names = cached_route_names
     CSV.foreach filename, headers: true do |row|
       if service_ids.include? row.fetch('service_id')
-        trips[row.fetch 'trip_id'] = [row.fetch('route_id'),
+        route_id = row.fetch('route_id')
+        route_name = route_names[route_id]
+        trips[row.fetch 'trip_id'] = [route_name,
                                       row.fetch('direction_id'),
                                       row.fetch('trip_headsign')]
       end
