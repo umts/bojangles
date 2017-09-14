@@ -170,9 +170,9 @@ module GtfsParser
       if service_ids.include? row.fetch('service_id')
         route_id = row.fetch('route_id')
         route_name = route_names[route_id]
-        trips[row.fetch 'trip_id'] = [route_name,
-                                      row.fetch('direction_id'),
-                                      row.fetch('trip_headsign')]
+        direction = row.fetch('direction_id')
+        headsign = row.fetch('trip_headsign')
+        trips[row.fetch 'trip_id'] = [route_name, direction, headsign]
       end
     end
     trips

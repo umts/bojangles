@@ -42,8 +42,15 @@ module DepartureComparator
       stop_name = stop_ids[stop_id]
       gtfs_object.each do	|route_data, (headsign, last_time, next_time)|
         route_number, _direction_id = route_data
-        if avail_times.key? [route_number, headsign, stop_id]
-          avail_time = avail_times.fetch [route_number, headsign, stop_id]
+        avail_time = if avail_times.key? [route_number, headsign, stop_id]
+                       avail_times.fetch [route_number, headsign, stop_id]
+                     else
+                       pair = avail_times.each_pair.find do |(_, sign, _), _|
+                         sign.upcase == headsign.upcase
+                       end
+                       pair.last if pair
+                     end
+        if avail_time
           # if Avail's returned SDT is before now,
           # check that it's the last scheduled departure from the stop
           # (i.e. the bus is running late).
