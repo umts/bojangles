@@ -32,12 +32,7 @@ GEM
     hashdiff (0.3.5)
     i18n (0.8.6)
     json (2.1.0)
-    mail (2.6.6)
-      mime-types (>= 1.16, < 4)
     method_source (0.8.2)
-    mime-types (3.1)
-      mime-types-data (~> 3.2015)
-    mime-types-data (3.2016.0521)
     minitest (5.10.3)
     multipart-post (2.0.0)
     net-scp (1.2.1)
@@ -48,8 +43,6 @@ GEM
     parallel (1.12.0)
     parser (2.4.0.0)
       ast (~> 2.2)
-    pony (1.11)
-      mail (>= 2.0)
     powerpack (0.1.1)
     pry (0.10.4)
       coderay (~> 1.1.0)
@@ -117,7 +110,6 @@ DEPENDENCIES
   capistrano
   capistrano-bundler
   octokit (~> 4.7)
-  pony
   pry-byebug
   rake
   rspec

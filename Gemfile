@@ -4,7 +4,6 @@ source 'https://rubygems.org'
 
 gem 'activesupport'
 gem 'octokit', '~> 4.7'
-gem 'pony'
 gem 'rake'
 gem 'whenever'
 gem 'zipruby'

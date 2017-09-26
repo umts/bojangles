@@ -6,7 +6,6 @@ require 'digest'
 require 'json'
 require 'net/http'
 require 'octokit'
-require 'pony'
 
 require_relative 'departure_comparator'
 include DepartureComparator
