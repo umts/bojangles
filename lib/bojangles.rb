@@ -96,7 +96,7 @@ module Bojangles
     end
     resolved_errors = old_errors.reject do |error|
       current_errors.any? { |new| error.lines.first(2) == new[:message].lines.first(2) }
-    end.values
+    end
     [new_errors, resolved_errors]
   end
 
@@ -114,7 +114,7 @@ module Bojangles
         issue = client.create_issue 'umts/realtime-issues', title, message_text
         issue_numbers[message] = issue.number
       end
-      resolved_errors.each do |issue_number|
+      resolved_errors.each_pair do |message, issue_number|
         comment = "#{Time.now.strftime('%H:%M %P')}: This error is no longer present."
         client.add_comment 'umts/realtime-issues', issue_number, comment
         issue_numbers.delete message
