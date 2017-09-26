@@ -116,7 +116,7 @@ DEPENDENCIES
   activesupport
   capistrano
   capistrano-bundler
-  octokit
+  octokit (~> 4.7)
   pony
   pry-byebug
   rake
