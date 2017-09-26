@@ -5,7 +5,9 @@ require 'active_support/core_ext/hash/conversions'
 require 'digest'
 require 'json'
 require 'net/http'
+require 'octokit'
 require 'pony'
+require 'pry-byebug'
 
 require_relative 'departure_comparator'
 include DepartureComparator
@@ -22,7 +24,7 @@ module Bojangles
   PVTA_BASE_API_URL = 'http://bustracker.pvta.com/InfoPoint/rest'
   ROUTES_URI = URI([PVTA_BASE_API_URL, 'routes', 'getvisibleroutes'].join('/'))
 
-  MAIL_SETTINGS = CONFIG.fetch('mail_settings').symbolize_keys
+  GITHUB_TOKEN = CONFIG.fetch('github_token')
 
   CACHED_ROUTES_FILE = 'route_mappings.json'
 
@@ -83,7 +85,7 @@ module Bojangles
   def cached_error_messages
     if File.file? 'error_messages.json'
       JSON.parse File.read('error_messages.json')
-    else []
+    else {}
     end
   end
 
@@ -91,11 +93,11 @@ module Bojangles
   # that we've already sent it.
   def compare_errors(current_errors, old_errors)
     new_errors = current_errors.reject do |error|
-      old_errors.any? { |old| error.lines.first(2) == old.lines.first(2) }
+      old_errors.keys.any? { |old| error[:message].lines.first(2) == old.lines.first(2) }
     end
     resolved_errors = old_errors.reject do |error|
-      current_errors.any? { |new| error.lines.first(2) == new.lines.first(2) }
-    end
+      current_errors.any? { |new| error.lines.first(2) == new[:message].lines.first(2) }
+    end.values
     [new_errors, resolved_errors]
   end
 
@@ -104,16 +106,22 @@ module Bojangles
     errors = DepartureComparator.compare
     current_time = Time.now
     new_errors, resolved_errors = compare_errors(errors, cached_error_messages)
+    issue_numbers = cached_error_messages
     if new_errors.present? || resolved_errors.present?
-      MAIL_SETTINGS[:html_body] = message_html(new_errors,
-                                               resolved_errors)
-      if CONFIG['environment'] == 'development'
-        MAIL_SETTINGS[:via] = :smtp
-        MAIL_SETTINGS[:via_options] = { address: 'localhost', port: 1025 }
+      client = Octokit::Client.new access_token: GITHUB_TOKEN
+      new_errors.each do |error|
+        title, message = error.values_at :title, :message
+        message_text = [Time.now.strftime('%H:%M %P'), message].join ': '
+        issue = client.create_issue 'umts/realtime-issues', title, message_text
+        issue_numbers[message] = issue.number
       end
-      Pony.mail MAIL_SETTINGS
+      resolved_errors.each do |issue_number|
+        comment = "#{Time.now.strftime('%H:%M %P')}: This error is no longer present."
+        client.add_comment 'umts/realtime-issues', issue_number, comment
+        issue_numbers.delete message
+      end
     end
-    cache_error_messages!(errors)
+    cache_error_messages!(issue_numbers)
     if new_errors.present?
       update_log_file! to: { current_time: current_time,
                              new_error: new_errors }
@@ -123,10 +131,7 @@ module Bojangles
 
   # rubocop:disable Style/IfUnlessModifier
   def message_html(new_errors, resolved_errors)
-    message = [<<~MESSAGE.tr("\n", ' ')]
-      This message brought to you by Bojangles, UMass Transit's monitoring
-      service for the PVTA realtime bus departures feed.
-    MESSAGE
+    message = ''
     if new_errors.present?
       message << message_list(new_errors, current: true)
     end

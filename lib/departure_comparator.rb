@@ -74,32 +74,41 @@ module DepartureComparator
   end
 
   def report_feed_down
-    @messages << <<~ERROR
+    issue = {}
+    issue[:title] = 'Feed is down'
+    issue[:message] = <<~ERROR
       The realtime feed is inaccessible via HTTP.
     ERROR
+    @messages << issue
   end
 
   def report_missing_route(route_number, headsign, stop_name,
                            gtfs_time, other_headsigns)
+    issue = {}
+    issue[:title] = "Missing route #{route_number} departure at #{stop_name}"
     message = <<~ERROR
       Route #{route_number} with headsign #{headsign} is missing:
-        Expected to be departing from #{stop_name}
-        Expected SDT: #{email_format gtfs_time}
+      Expected to be departing from #{stop_name}
+      Expected SDT: #{email_format gtfs_time}
     ERROR
     if other_headsigns.length == 1
-      message += "  Found alternative: #{other_headsigns.first}"
+      message += "Found alternative: #{other_headsigns.first}"
     elsif other_headsigns.length > 1
-      message += "  Found alternatives: #{other_headsigns.join(', ')}"
+      message += "Found alternatives: #{other_headsigns.join(', ')}"
     end
-    @messages << message
+    issue[:message] = message
+    @messages << issue
   end
 
   def report_incorrect_departure(route_num, sign, stop_name,
                                  gtfs_time, avail_time, type)
-    @messages << <<~ERROR
+    issue = {}
+    issue[:title] = "Incorrect #{route_num} #{type} departure at #{stop_name}"
+    issue[:message] = <<~ERROR
       Incorrect route #{route_num} SDT at #{stop_name} with headsign #{sign}:
-        Saw #{type} departure time, expected to be #{email_format gtfs_time};
-        Received SDT #{email_format avail_time}
+      Saw #{type} departure time, expected to be #{email_format gtfs_time};
+      Received SDT #{email_format avail_time}
 		ERROR
+    @messages << issue
   end
 end

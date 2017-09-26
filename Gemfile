@@ -3,6 +3,7 @@
 source 'https://rubygems.org'
 
 gem 'activesupport'
+gem 'octokit'
 gem 'pony'
 gem 'rake'
 gem 'whenever'
