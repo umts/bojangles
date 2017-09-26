@@ -109,12 +109,12 @@ module Bojangles
       client = Octokit::Client.new access_token: GITHUB_TOKEN
       new_errors.each do |error|
         title, message = error.values_at :title, :message
-        message_text = [Time.now.strftime('%H:%M %P'), message].join ': '
+        message_text = [Time.now.strftime('%l:%M %P'), message].join ': '
         issue = client.create_issue 'umts/realtime-issues', title, message_text
         issue_numbers[message] = issue.number
       end
       resolved_errors.each_pair do |message, issue_number|
-        comment = "#{Time.now.strftime('%H:%M %P')}: This error is no longer present."
+        comment = "#{Time.now.strftime('%l:%M %P')}: This error is no longer present."
         client.add_comment 'umts/realtime-issues', issue_number, comment
         issue_numbers.delete message
       end
