@@ -60,7 +60,11 @@ module Bojangles
       route_directions.each do |route|
         route_id = route.fetch('RouteId').to_s
         route_number = cached_route_mappings[route_id]
-        departure = route.fetch('Departures').first
+        departure = route.fetch('Departures').select do |dep|
+          parse_json_unix_timestamp(dep.fetch 'SDT') >= Time.now
+        end.sort_by do |dep|
+          parse_json_unix_timestamp(dep.fetch 'SDT')
+        end.first
         next unless departure.present?
         departure_time = departure.fetch 'SDT' # scheduled departure time
         trip = departure.fetch 'Trip'
