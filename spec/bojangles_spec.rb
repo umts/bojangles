@@ -135,7 +135,7 @@ describe Bojangles do
       before(:each) { FileUtils.rm 'error_messages.json' }
       it 'returns an empty array' do
         expect(File.file?('error_messages.json')).to be false
-        expect(Bojangles.cached_error_messages).to eql Hash.new
+        expect(Bojangles.cached_error_messages).to eql({})
       end
     end
     context 'with an error messages file' do
@@ -281,7 +281,7 @@ describe Bojangles do
     context 'messages differ by one of the first two lines' do
       let(:old) { { different_message => 123 } }
       it 'reports the difference' do
-        expect(result).to eql([[{message: message}], {different_message => 123}])
+        expect(result).to eql([[{ message: message }], { different_message => 123 }])
       end
     end
     context 'messages differ after the first two lines' do

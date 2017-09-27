@@ -57,7 +57,7 @@ describe DepartureComparator do
         alternative = 'Found alternative: Another Destination'
         report_missing_route @route_number, @headsign, @stop_name, @gtfs_time,
                              ['Another Destination']
-        expect(@issues.last.fetch :message).to include alternative
+        expect(@issues.last.fetch(:message)).to include alternative
       end
     end
     context 'with alternative headsigns' do
@@ -65,7 +65,7 @@ describe DepartureComparator do
         alternative = 'Found alternatives: Another Destination, And Another'
         report_missing_route @route_number, @headsign, @stop_name, @gtfs_time,
                              ['Another Destination', 'And Another']
-        expect(@issues.last.fetch :message).to include alternative
+        expect(@issues.last.fetch(:message)).to include alternative
       end
     end
   end
