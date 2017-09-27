@@ -26,7 +26,7 @@ module DepartureComparator
   # Returns an array of messages and by comparing the GTFS
   # scheduled departures to the departures returned by the Avail endpoint
   def compare
-    @messages = []
+    @issues = []
     gtfs_times = soonest_departures_within DEPARTURE_FUTURE_HOURS * 60
     stop_ids = gtfs_times.keys
     begin
@@ -65,7 +65,7 @@ module DepartureComparator
         end
       end
     end
-    @messages
+    @issues
   end
 
   # a nicer-looking format of a time.
@@ -79,7 +79,7 @@ module DepartureComparator
     issue[:message] = <<~ERROR
       The realtime feed is inaccessible via HTTP.
     ERROR
-    @messages << issue
+    @issues << issue
   end
 
   def report_missing_route(route_number, headsign, stop_name,
@@ -97,7 +97,7 @@ module DepartureComparator
       message += "Found alternatives: #{other_headsigns.join(', ')}"
     end
     issue[:message] = message
-    @messages << issue
+    @issues << issue
   end
 
   def report_incorrect_departure(route_num, sign, stop_name,
@@ -109,6 +109,6 @@ module DepartureComparator
       Saw #{type} departure time, expected to be #{email_format gtfs_time};
       Received SDT #{email_format avail_time}
 		ERROR
-    @messages << issue
+    @issues << issue
   end
 end
