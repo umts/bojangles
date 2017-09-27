@@ -7,7 +7,7 @@ include GtfsParser
 
 describe DepartureComparator do
   before :each do
-    @messages = ['error']
+    @issues = ['error']
     @all_messages = []
     @route_number = '45'
     @headsign = 'UMass'
@@ -30,7 +30,7 @@ describe DepartureComparator do
         message = "The realtime feed is inaccessible via HTTP.\n"
 
         report_feed_down
-        expect(@messages).to include message
+        expect(@issues).to include hash_including(message: message)
       end
     end
   end
@@ -46,9 +46,10 @@ describe DepartureComparator do
 
         report_missing_route @route_number, @headsign, @stop_name, @gtfs_time,
                              []
-        expect(@messages.last).to include route_and_headsign
-        expect(@messages.last).to include expected_departure
-        expect(@messages.last).to include expected_time
+        message = @issues.last.fetch :message
+        expect(message).to include route_and_headsign
+        expect(message).to include expected_departure
+        expect(message).to include expected_time
       end
     end
     context 'with an alternative headsign' do
@@ -56,7 +57,7 @@ describe DepartureComparator do
         alternative = 'Found alternative: Another Destination'
         report_missing_route @route_number, @headsign, @stop_name, @gtfs_time,
                              ['Another Destination']
-        expect(@messages.last).to include alternative
+        expect(@issues.last.fetch(:message)).to include alternative
       end
     end
     context 'with alternative headsigns' do
@@ -64,7 +65,7 @@ describe DepartureComparator do
         alternative = 'Found alternatives: Another Destination, And Another'
         report_missing_route @route_number, @headsign, @stop_name, @gtfs_time,
                              ['Another Destination', 'And Another']
-        expect(@messages.last).to include alternative
+        expect(@issues.last.fetch(:message)).to include alternative
       end
     end
   end
@@ -79,10 +80,11 @@ describe DepartureComparator do
 
       report_incorrect_departure @route_number, @headsign, @stop_name,
                                  @gtfs_time, @avail_time, @type
-      expect(@messages.last).to include route_and_headsign
-      expect(@messages.last).to include type
-      expect(@messages.last).to include expected_time
-      expect(@messages.last).to include avail_time
+      message = @issues.last.fetch :message
+      expect(message).to include route_and_headsign
+      expect(message).to include type
+      expect(message).to include expected_time
+      expect(message).to include avail_time
     end
   end
 
@@ -91,7 +93,7 @@ describe DepartureComparator do
       it 'reports incorrect departure' do
         Timecop.freeze(2016, 12, 12, 14, 0)
         early_sdt_time = Time.new(2016, 12, 12, 13, 58)
-        @messages = ['error']
+        @issues = ['error']
         expect(Bojangles)
           .to receive(:get_avail_departure_times!)
           .and_return(['31', 'North Amherst', 79] => early_sdt_time)
@@ -109,9 +111,9 @@ describe DepartureComparator do
           .to receive(:report_incorrect_departure)
           .with('31', 'North Amherst', 'My Awesome Stop',
                 last_time, early_sdt_time, 'past')
-          .and_return(@messages)
+          .and_return(@issues)
 
-        expect(compare).to match_array(@messages)
+        expect(compare).to match_array(@issues)
         Timecop.return
       end
     end
@@ -119,7 +121,7 @@ describe DepartureComparator do
       it 'reports incorrect departure' do
         Timecop.freeze(2016, 12, 12, 14, 0)
         late_sdt_time = Time.new(2016, 12, 12, 14, 5)
-        @messages = ['error']
+        @issues = ['error']
         expect(Bojangles)
           .to receive(:get_avail_departure_times!)
           .and_return(['31', 'North Amherst', 79] => late_sdt_time)
@@ -137,9 +139,9 @@ describe DepartureComparator do
           .to receive(:report_incorrect_departure)
           .with('31', 'North Amherst', 'My Awesome Stop',
                 next_time2, late_sdt_time, 'future')
-          .and_return(@messages)
+          .and_return(@issues)
 
-        expect(compare).to match_array(@messages)
+        expect(compare).to match_array(@issues)
         Timecop.return
       end
     end
