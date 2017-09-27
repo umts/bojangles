@@ -13,11 +13,14 @@ describe Bojangles do
                 'Host' => 'bustracker.pvta.com',
                 'User-Agent' => 'Ruby'
               }).to_return(status: 200, body: '', headers: {})
-      allow(Pony).to receive(:deliver)
+      issue = double number: 123
+      client = double create_issue: issue, add_comment: nil
+      allow(Octokit::Client).to receive(:new).and_return client
     end
     context 'with new error messages' do
       it 'updates the log and caches error messages' do
-        DepartureComparator.stub(:compare) { %w[error] }
+        error = { title: 'title', message: 'message' }
+        DepartureComparator.stub(:compare) { [error] }
         expect_any_instance_of(Bojangles)
           .to receive :update_log_file!
         expect_any_instance_of(Bojangles)
@@ -27,9 +30,10 @@ describe Bojangles do
     end
     context 'with old error messages' do
       it 'does nothing' do
-        DepartureComparator.stub(:compare) { %w[error] }
+        error = { title: 'title', message: 'message' }
+        DepartureComparator.stub(:compare) { [error] }
         Bojangles.stub(:cached_error_messages) do
-          ['error']
+          { 'message' => 123 }
         end
         expect_any_instance_of(Bojangles)
           .not_to receive :anything
@@ -129,9 +133,9 @@ describe Bojangles do
   describe 'cached_error_messages' do
     context 'without an error messages file' do
       before(:each) { FileUtils.rm 'error_messages.json' }
-      it 'returns an empty array' do
+      it 'returns an empty hash' do
         expect(File.file?('error_messages.json')).to be false
-        expect(Bojangles.cached_error_messages).to eql []
+        expect(Bojangles.cached_error_messages).to eql({})
       end
     end
     context 'with an error messages file' do
@@ -266,41 +270,6 @@ describe Bojangles do
       end
     end
   end
-  describe 'message_html' do
-    context 'with error messages' do
-      it 'creates a message' do
-        Bojangles.stub(:message_list) do
-          'error message list'
-        end
-        message = <<~message.tr("\n", ' ')
-          This message brought to you by Bojangles, UMass Transit's
-          monitoring service for the PVTA realtime bus departures feed.
-        message
-        expect(Bojangles.message_html(%w[error1 error2], current: true))
-          .to include message + '<br>' + Bojangles.message_list
-      end
-    end
-  end
-  describe 'message_list' do
-    context 'with new error messages' do
-      it 'creates a message_list of given heading and error messages' do
-        heading = 'Bojangles has noticed the following errors:'
-        result = Bojangles.message_list(%w[error1 error2], current: true)
-        expect(result.first).to include heading
-        expect(result.last).to include 'error1'
-        expect(result.last).to include 'error2'
-      end
-    end
-    context 'with resolved error messages' do
-      it 'creates a message_list of given heading and error messages' do
-        heading = 'This error has been resolved:'
-        result = Bojangles.message_list(%w[error1 error2], current: false)
-        expect(result.first).to include heading
-        expect(result.last).to include 'error1'
-        expect(result.last).to include 'error2'
-      end
-    end
-  end
 
   describe 'compare_errors' do
     let(:message) { %w[apple banana cashew].join "\n" }
@@ -308,17 +277,17 @@ describe Bojangles do
     let(:equivalent_message) { %w[apple banana carrot].join "\n" }
 
     let(:result) { Bojangles.compare_errors current, old }
-    let(:current) { [message] }
+    let(:current) { [{ message: message }] }
     context 'messages differ by one of the first two lines' do
-      let(:old) { [different_message] }
+      let(:old) { { different_message => 123 } }
       it 'reports the difference' do
-        expect(result).to eql([[message], [different_message]])
+        expect(result).to eql([[{ message: message }], { different_message => 123 }])
       end
     end
     context 'messages differ after the first two lines' do
-      let(:old) { [equivalent_message] }
+      let(:old) { { equivalent_message => 123 } }
       it 'passes on by' do
-        expect(result).to eql([[], []]) # looks like an owl
+        expect(result).to eql([[], {}]) # looks like a winking owl
       end
     end
   end
