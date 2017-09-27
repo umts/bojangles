@@ -127,38 +127,6 @@ module Bojangles
   end
   # rubocop:enable Style/GuardClause
 
-  # rubocop:disable Style/IfUnlessModifier
-  def message_html(new_errors, resolved_errors)
-    message = ''
-    if new_errors.present?
-      message << message_list(new_errors, current: true)
-    end
-    if resolved_errors.present?
-      message << message_list(resolved_errors, current: false)
-    end
-    message.flatten.join '<br>'
-  end
-  # rubocop:enable Style/IfUnlessModifier
-
-  def message_list(error_messages, current:)
-    heading = if current
-                'Bojangles has noticed the following errors:'
-              else
-                'This error has been resolved:'
-              end
-    list = '<ul>'
-    error_messages.each do |error|
-      list += '<li>'
-      error.split("\n").each do |line|
-        list += line
-        list += '<br>'
-      end
-      list += '</li>'
-    end
-    list += '</ul>'
-    [heading, list]
-  end
-
   def parse_json_unix_timestamp(timestamp)
     match_data = timestamp.match %r{/Date\((\d+)000-0[45]00\)/}
     timestamp = match_data.captures.first.to_i
