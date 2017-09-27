@@ -197,7 +197,11 @@ describe Bojangles do
                 })
           .to_return(status: 200, body: response_body2, headers: {})
         Bojangles.cache_route_mappings!
-        result = Bojangles.get_avail_departure_times!([72, 79])
+
+        result = {}
+        Timecop.freeze Time.new(2016, 12, 12, 13, 55) do
+          result = Bojangles.get_avail_departure_times!([72, 79])
+        end
 
         expect(result).is_a? Hash
         expect(result).to include ['10', 'CompSci', 72] =>
