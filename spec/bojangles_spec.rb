@@ -277,7 +277,7 @@ describe Bojangles do
     let(:equivalent_message) { %w[apple banana carrot].join "\n" }
 
     let(:result) { Bojangles.compare_errors current, old }
-    let(:current) { [{message: message}] }
+    let(:current) { [{ message: message }] }
     context 'messages differ by one of the first two lines' do
       let(:old) { { different_message => 123 } }
       it 'reports the difference' do
@@ -285,7 +285,7 @@ describe Bojangles do
       end
     end
     context 'messages differ after the first two lines' do
-      let(:old) { {equivalent_message => 123} }
+      let(:old) { { equivalent_message => 123 } }
       it 'passes on by' do
         expect(result).to eql([[], {}]) # looks like a winking owl
       end
