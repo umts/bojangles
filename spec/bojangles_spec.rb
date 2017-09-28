@@ -2,7 +2,6 @@
 
 require 'spec_helper'
 include Bojangles
-require 'json'
 
 describe Bojangles do
   describe 'go!' do
@@ -166,13 +165,10 @@ describe Bojangles do
         Bojangles.stub(:cached_route_mappings) do
           { '20030' => '30', '20010' => '10', '20045' => '45' }
         end
-        Bojangles.stub(:parse_json_unix_timestamp) do
-          '2016-12-12 14:00:00 -0500'
-        end
 
-        dept1 = { SDT: '13:00', Trip: { InternetServiceDesc: 'Garage' } }
-        dept2 = { SDT: '12:00', Trip: { InternetServiceDesc: 'CompSci' } }
-        dept3 = { SDT: '12:15', Trip: { InternetServiceDesc: 'CompSci' } }
+        dept1 = { SDT: json_unix_timestamp(2016, 12, 12, 12), Trip: { InternetServiceDesc: 'Garage' } }
+        dept2 = { SDT: json_unix_timestamp(2016, 12, 12, 12), Trip: { InternetServiceDesc: 'CompSci' } }
+        dept3 = { SDT: json_unix_timestamp(2016, 12, 12, 12, 15), Trip: { InternetServiceDesc: 'CompSci' } }
         route_directions = [
           { ShortName: 30, RouteId: 20_030, Departures: [dept1] },
           { ShortName: 10, RouteId: 20_010, Departures: [dept2, dept3] }
@@ -185,9 +181,10 @@ describe Bojangles do
                   'User-Agent' => 'Ruby'
                 }).to_return(status: 200, body: response_body, headers: {})
 
-        dept4 = { SDT: '14:00', Trip: { InternetServiceDesc: 'LRC' } }
+        dept4 = { SDT: json_unix_timestamp(2016, 12, 12, 14), Trip: { InternetServiceDesc: 'LRC' } }
+        dept5 = { SDT: json_unix_timestamp(2016, 12, 12, 14, 15), Trip: { InternetServiceDesc: 'CBS' } }
         route_directions2 = [
-          { ShortName: 45, RouteId: 20_045, Departures: [dept4] }
+          { ShortName: 45, RouteId: 20_045, Departures: [dept4, dept5] }
         ]
         response_body2 = [{ RouteDirections: route_directions2 }].to_json
         stub_request(:get, 'http://bustracker.pvta.com/InfoPoint/rest/stopdepartures/get/79')
@@ -200,17 +197,19 @@ describe Bojangles do
         Bojangles.cache_route_mappings!
 
         result = {}
-        Timecop.freeze Time.new(2016, 12, 12, 13, 55) do
+        Timecop.freeze Time.new(2016, 12, 12, 11, 55) do
           result = Bojangles.get_avail_departure_times!([72, 79])
         end
 
         expect(result).is_a? Hash
         expect(result).to include ['10', 'CompSci', 72] =>
-                                  '2016-12-12 14:00:00 -0500'
+                                  Time.new(2016, 12, 12, 12)
         expect(result).to include ['30', 'Garage', 72] =>
-                                  '2016-12-12 14:00:00 -0500'
+                                  Time.new(2016, 12, 12, 12)
         expect(result).to include ['45', 'LRC', 79] =>
-                                  '2016-12-12 14:00:00 -0500'
+                                  Time.new(2016, 12, 12, 14)
+        expect(result).to include ['45', 'CBS', 79] =>
+                                  Time.new(2016, 12, 12, 14, 15)
       end
     end
     context 'without departures' do
