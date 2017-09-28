@@ -42,6 +42,7 @@ GEM
     method_source (0.8.2)
     minitest (5.10.3)
     multipart-post (2.0.0)
+    mysql2 (0.4.9)
     net-scp (1.2.1)
       net-ssh (>= 2.6.5)
     net-ssh (4.1.0)
@@ -113,20 +114,21 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  activerecord
-  activesupport
+  activerecord (~> 5.1)
+  activesupport (~> 5.1)
   capistrano
   capistrano-bundler
+  mysql2 (~> 0.4)
   octokit (~> 4.7)
   pry-byebug
-  rake
+  rake (~> 12.0)
   rspec
   rubocop
   simplecov
   timecop
   webmock
-  whenever
-  zipruby
+  whenever (~> 0.9)
+  zipruby (~> 0.3)
 
 BUNDLED WITH
    1.16.0.pre.2
