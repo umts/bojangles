@@ -114,7 +114,8 @@ module Bojangles
       new_errors.each do |error|
         title, message = error.values_at :title, :message
         message_text = [Time.now.strftime('%l:%M %P'), message].join ': '
-        issue = client.create_issue 'umts/realtime-issues', title, message_text
+        issue = client.create_issue 'umts/realtime-issues', title, message_text,
+                                    labels: 'needs triage'
         issue_numbers[message] = issue.number
       end
       resolved_errors.each_pair do |message, issue_number|
