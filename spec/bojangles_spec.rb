@@ -172,9 +172,10 @@ describe Bojangles do
 
         dept1 = { SDT: '13:00', Trip: { InternetServiceDesc: 'Garage' } }
         dept2 = { SDT: '12:00', Trip: { InternetServiceDesc: 'CompSci' } }
+        dept3 = { SDT: '12:15', Trip: { InternetServiceDesc: 'CompSci' } }
         route_directions = [
           { ShortName: 30, RouteId: 20_030, Departures: [dept1] },
-          { ShortName: 10, RouteId: 20_010, Departures: [dept2] }
+          { ShortName: 10, RouteId: 20_010, Departures: [dept2, dept3] }
         ]
         response_body = [{ RouteDirections: route_directions }].to_json
         stub_request(:get, 'http://bustracker.pvta.com/InfoPoint/rest/stopdepartures/get/72')
@@ -184,9 +185,9 @@ describe Bojangles do
                   'User-Agent' => 'Ruby'
                 }).to_return(status: 200, body: response_body, headers: {})
 
-        dept3 = { SDT: '14:00', Trip: { InternetServiceDesc: 'LRC' } }
+        dept4 = { SDT: '14:00', Trip: { InternetServiceDesc: 'LRC' } }
         route_directions2 = [
-          { ShortName: 45, RouteId: 20_045, Departures: [dept3] }
+          { ShortName: 45, RouteId: 20_045, Departures: [dept4] }
         ]
         response_body2 = [{ RouteDirections: route_directions2 }].to_json
         stub_request(:get, 'http://bustracker.pvta.com/InfoPoint/rest/stopdepartures/get/79')
