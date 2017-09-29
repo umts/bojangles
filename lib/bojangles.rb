@@ -60,17 +60,19 @@ module Bojangles
       route_directions.each do |route|
         route_id = route.fetch('RouteId').to_s
         route_number = cached_route_mappings[route_id]
-        departure = route.fetch('Departures').select do |dep|
-          parse_json_unix_timestamp(dep.fetch 'SDT') >= Time.now
-        end.sort_by do |dep|
-          parse_json_unix_timestamp(dep.fetch 'SDT')
-        end.first
-        next unless departure.present?
-        departure_time = departure.fetch 'SDT' # scheduled departure time
-        trip = departure.fetch 'Trip'
-        headsign = trip.fetch 'InternetServiceDesc' # headsign
-        route_data = [route_number, headsign, stop_id]
-        times[route_data] = parse_json_unix_timestamp(departure_time)
+        # Look for the soonest departure which is after now.
+        route.fetch('Departures').each do |departure|
+          time = parse_json_unix_timestamp(departure.fetch 'SDT')
+          next if time < Time.now
+          trip = departure.fetch 'Trip'
+          headsign = trip.fetch 'InternetServiceDesc' # headsign
+          route_data = [route_number, headsign, stop_id]
+          existing_time = times[route_data]
+          times[route_data] = if existing_time
+                                [existing_time, time].min
+                              else time
+                              end
+        end
       end
     end
     times
