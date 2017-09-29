@@ -3,14 +3,14 @@ require 'net/http'
 require 'zipruby'
 
 module GTFS
-  module Setup
+  module Files
     LOCAL_GTFS_DIR = File.expand_path('../../gtfs', __FILE__)
     REMOTE_GTFS_PROTOCOL = 'http://'
     REMOTE_GTFS_HOST =     'pvta.com'
     REMOTE_GTFS_PATH =     '/g_trans/google_transit.zip'
 
     # Is the remote GTFS archive more up-to-date than our cached files?
-    def self.files_up_to_date?
+    def self.up_to_date?
       return false unless File.directory? LOCAL_GTFS_DIR
       http = Net::HTTP.new REMOTE_GTFS_HOST
       begin
@@ -24,7 +24,7 @@ module GTFS
     end
 
     # Downloads the ZIP archive
-    def self.get_new_files!
+    def self.get_new!
       FileUtils.rm_rf LOCAL_GTFS_DIR
       FileUtils.mkdir_p LOCAL_GTFS_DIR
       gtfs_url = REMOTE_GTFS_PROTOCOL + REMOTE_GTFS_HOST + REMOTE_GTFS_PATH
