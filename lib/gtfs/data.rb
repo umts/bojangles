@@ -65,5 +65,19 @@ module GTFS
       end
       records
     end
+
+    def self.trip_records
+      records = []
+      filename = [LOCAL_GTFS_DIR, 'trips.txt'].join '/'
+      CSV.foreach filename, headers: true do |row|
+        records << {
+          route: row.fetch('route_id'),
+          service: row.fetch('service_id'),
+          hastus_id: row.fetch('trip_id'),
+          headsign: row.fetch('trip_headsign')
+        }
+      end
+      records
+    end
   end
 end

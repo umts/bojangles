@@ -7,6 +7,7 @@ require_relative 'models/route'
 require_relative 'models/service'
 require_relative 'models/service_exception'
 require_relative 'models/stop'
+require_relative 'models/trip'
 
 require_relative 'avail/endpoints'
 
@@ -18,12 +19,14 @@ module Bojangles
 
   def prepare
     unless GTFS::Files.up_to_date? && !ENV['REINITIALIZE']
-      # GTFS::Files.get_new!
-      # TODO: uncomment!
+=begin
+      GTFS::Files.get_new!
       Stop.import GTFS::Data.stop_records
       Service.import GTFS::Data.calendar_records
       ServiceException.import GTFS::Data.exception_records
       Route.import GTFS::Data.route_records(Avail::Endpoints.route_mappings)
+      Trip.import GTFS::Data.trip_records
+=end
     end
     Stop.activate CONFIG.fetch('stops')
     binding.pry
