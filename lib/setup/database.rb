@@ -22,6 +22,7 @@ unless ActiveRecord::Base.connection.tables.any?
     create_table :stops, force: true do |t|
       t.string :name
       t.integer :hastus_id
+      t.boolean :active, default: true
     end
   end
 end

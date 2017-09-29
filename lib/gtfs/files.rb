@@ -4,7 +4,7 @@ require 'zipruby'
 
 module GTFS
   module Files
-    LOCAL_GTFS_DIR = File.expand_path('../../gtfs', __FILE__)
+    LOCAL_GTFS_DIR = File.expand_path('../../../gtfs_files', __FILE__)
     REMOTE_GTFS_PROTOCOL = 'http://'
     REMOTE_GTFS_HOST =     'pvta.com'
     REMOTE_GTFS_PATH =     '/g_trans/google_transit.zip'
