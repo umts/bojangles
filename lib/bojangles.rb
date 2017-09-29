@@ -15,16 +15,23 @@ module Bojangles
 
   def prepare
     GTFS::Files.get_new! unless GTFS::Files.up_to_date?
+    import_stops
+    
+  end
 
+  def run
+    # TODO
+  end
+
+  private
+
+  def import_stops
+    # Any stops removed from the list remain in the database as inactive.
     Stop.update_all active: false
     GTFS::Data.find_stop_records(STOP_NAMES).each do |stop_record|
       stop = Stop.where(stop_record).first_or_create
       stop.update active: true
     end
-  end
-
-  def run
-    # TODO
   end
 
 end
