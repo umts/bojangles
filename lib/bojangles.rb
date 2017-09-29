@@ -15,8 +15,9 @@ module Bojangles
 
   def prepare
     GTFS::Files.get_new! unless GTFS::Files.up_to_date?
+    Stop.import GTFS::Data.find_stop_records(STOP_NAMES)
     import_stops
-    
+    kkjkk
   end
 
   def run
