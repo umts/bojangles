@@ -5,10 +5,10 @@ require_relative 'models/departure'
 require_relative 'models/route'
 require_relative 'models/stop'
 
-require_relative 'gtfs'
+require_relative 'gtfs/setup'
 
 module Bojangles
-  include GTFS
+  include GTFS::Setup
 
   # CONFIG = JSON.parse File.read('config/config.json')
   # STOP_NAMES = CONFIG.fetch 'stops'
