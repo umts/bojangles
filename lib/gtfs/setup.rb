@@ -10,7 +10,7 @@ module GTFS
     REMOTE_GTFS_PATH =     '/g_trans/google_transit.zip'
 
     # Is the remote GTFS archive more up-to-date than our cached files?
-    def files_up_to_date?
+    def self.files_up_to_date?
       return false unless File.directory? LOCAL_GTFS_DIR
       http = Net::HTTP.new REMOTE_GTFS_HOST
       begin
@@ -24,7 +24,7 @@ module GTFS
     end
 
     # Downloads the ZIP archive
-    def get_new_files!
+    def self.get_new_files!
       FileUtils.rm_rf LOCAL_GTFS_DIR
       FileUtils.mkdir_p LOCAL_GTFS_DIR
       gtfs_url = REMOTE_GTFS_PROTOCOL + REMOTE_GTFS_HOST + REMOTE_GTFS_PATH
