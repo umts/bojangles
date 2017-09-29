@@ -4,10 +4,16 @@ class Stop < ActiveRecord::Base
 
   scope :active, -> { where active: true }
 
-  def self.import(records)
+  def self.activate(names)
     update_all active: false
+    names.each do |name|
+      find_by!(name: name).update active: true
+    end
+  end
+
+  def self.import(records)
     records.each do |data|
-      where(data).first_or_create.update active: true
+      where(data).first_or_create
     end
   end
 end
