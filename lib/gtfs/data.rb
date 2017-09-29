@@ -21,6 +21,24 @@ module GTFS
       calendar_records
     end
 
+    def self.exception_records
+      exception_records = []
+      filename = [LOCAL_GTFS_DIR, 'calendar_dates.txt'].join '/'
+      CSV.foreach filename, headers: true do |row|
+        type = case row.fetch('exception_type')
+               when '1' then 'add'
+               when '2' then 'remove'
+               end
+        record = {
+          service: row.fetch('service_id'),
+          date: Date.parse(row.fetch('date')),
+          exception_type: type
+        }
+        exception_records << record
+      end
+      exception_records
+    end
+
     def self.stop_records
       stop_records = []
       filename = [LOCAL_GTFS_DIR, 'stops.txt'].join '/'

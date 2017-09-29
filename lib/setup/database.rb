@@ -19,6 +19,12 @@ unless ActiveRecord::Base.connection.tables.any? && !ENV['REINITIALIZE']
       t.string :avail_id
     end
 
+    create_table :service_exceptions, force: true do |t|
+      t.integer :service_id
+      t.string :exception_type
+      t.date :date
+    end
+
     create_table :services, force: true do |t|
       t.string :hastus_id
       t.date :start_date

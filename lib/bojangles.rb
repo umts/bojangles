@@ -5,6 +5,7 @@ require_relative 'setup/database'
 require_relative 'models/departure'
 require_relative 'models/route'
 require_relative 'models/service'
+require_relative 'models/service_exception'
 require_relative 'models/stop'
 
 require_relative 'gtfs/files'
@@ -18,6 +19,7 @@ module Bojangles
       GTFS::Files.get_new!
       Stop.import GTFS::Data.stop_records
       Service.import GTFS::Data.calendar_records
+      ServiceException.import GTFS::Data.exception_records
     end
     Stop.activate CONFIG.fetch('stops')
   end
