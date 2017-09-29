@@ -6,7 +6,7 @@ DATABASE_SETTINGS = JSON.parse(File.read 'config/database.json')
 
 ActiveRecord::Base.establish_connection(DATABASE_SETTINGS)
 
-unless ActiveRecord::Base.connection.tables.any?
+unless ActiveRecord::Base.connection.tables.any? && !ENV['REINITIALIZE']
   ActiveRecord::Schema.define do
     create_table :departures, force: true do |t|
       t.datetime :sdt
@@ -17,6 +17,13 @@ unless ActiveRecord::Base.connection.tables.any?
     create_table :routes, force: true do |t|
       t.string :number
       t.string :avail_id
+    end
+
+    create_table :services, force: true do |t|
+      t.string :hastus_id
+      t.date :start_date
+      t.date :end_date
+      t.text :weekdays
     end
 
     create_table :stops, force: true do |t|
