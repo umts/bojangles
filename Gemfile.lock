@@ -20,6 +20,8 @@ GEM
     capistrano-bundler (1.2.0)
       capistrano (~> 3.1)
       sshkit (~> 1.2)
+    capistrano-pending (0.2.0)
+      capistrano (>= 3.2.0)
     chronic (0.10.2)
     coderay (1.1.1)
     concurrent-ruby (1.0.5)
@@ -109,6 +111,7 @@ DEPENDENCIES
   activesupport
   capistrano
   capistrano-bundler
+  capistrano-pending
   octokit (~> 4.7)
   pry-byebug
   rake
