@@ -5,7 +5,7 @@ module GTFS
     LOCAL_GTFS_DIR = File.expand_path('../../../gtfs_files', __FILE__)
 
     def self.calendar_records
-      calendar_records = []
+      records = []
       filename = [LOCAL_GTFS_DIR, 'calendar.txt'].join '/'
       CSV.foreach filename, headers: true do |row|
         record = {
@@ -16,13 +16,13 @@ module GTFS
         weekdays = row.values_at(*%w[sunday monday tuesday wednesday thursday friday saturday])
                       .map{ |i| i == '1' }
         record[:weekdays] = weekdays
-        calendar_records << record
+        records << record
       end
-      calendar_records
+      records
     end
 
     def self.exception_records
-      exception_records = []
+      records = []
       filename = [LOCAL_GTFS_DIR, 'calendar_dates.txt'].join '/'
       CSV.foreach filename, headers: true do |row|
         type = case row.fetch('exception_type')
@@ -34,21 +34,36 @@ module GTFS
           date: Date.parse(row.fetch('date')),
           exception_type: type
         }
-        exception_records << record
+        records << record
       end
-      exception_records
+      records
     end
 
+    def self.route_records(route_mappings)
+      records = []
+      filename = [LOCAL_GTFS_DIR, 'routes.txt'].join '/'
+      CSV.foreach filename, headers: true do |row|
+        number = row.fetch 'route_short_name'
+        next unless route_mappings.key? number
+        records << {
+          number: number,
+          hastus_id: row.fetch('route_id'),
+          avail_id: route_mappings[number]
+        }
+      end
+      records
+    end
+    
     def self.stop_records
-      stop_records = []
+      records = []
       filename = [LOCAL_GTFS_DIR, 'stops.txt'].join '/'
       CSV.foreach filename, headers: true do |row|
-        stop_records << {
+        records << {
           name: row.fetch('stop_name').strip,
           hastus_id: row.fetch('stop_id')
         }
       end
-      stop_records
+      records
     end
   end
 end

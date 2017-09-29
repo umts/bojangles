@@ -16,6 +16,7 @@ unless ActiveRecord::Base.connection.tables.any? && !ENV['REINITIALIZE']
 
     create_table :routes, force: true do |t|
       t.string :number
+      t.string :hastus_id
       t.string :avail_id
     end
 
@@ -36,6 +37,13 @@ unless ActiveRecord::Base.connection.tables.any? && !ENV['REINITIALIZE']
       t.string :name
       t.integer :hastus_id
       t.boolean :active, default: true
+    end
+
+    create_table :trips, force: true do |t|
+      t.integer :route_id
+      t.integer :service_id
+      t.integer :hastus_id
+      t.string :headsign
     end
   end
 end
