@@ -9,20 +9,6 @@ module GTFS
     REMOTE_GTFS_HOST =     'pvta.com'
     REMOTE_GTFS_PATH =     '/g_trans/google_transit.zip'
 
-    # Is the remote GTFS archive more up-to-date than our cached files?
-    def self.up_to_date?
-      return false unless File.directory? LOCAL_GTFS_DIR
-      http = Net::HTTP.new REMOTE_GTFS_HOST
-      begin
-        response = http.head REMOTE_GTFS_PATH
-      rescue SocketError
-        return true
-      else
-        remote_mtime = DateTime.parse response['last-modified']
-        remote_mtime <= File.mtime(LOCAL_GTFS_DIR).to_datetime
-      end
-    end
-
     # Downloads the ZIP archive
     def self.get_new!
       FileUtils.rm_rf LOCAL_GTFS_DIR
@@ -40,6 +26,20 @@ module GTFS
             f << file.read
           end
         end
+      end
+    end
+
+    # Is the remote GTFS archive more up-to-date than our cached files?
+    def self.out_of_date?
+      return false unless File.directory? LOCAL_GTFS_DIR
+      http = Net::HTTP.new REMOTE_GTFS_HOST
+      begin
+        response = http.head REMOTE_GTFS_PATH
+      rescue SocketError
+        false
+      else
+        remote_mtime = DateTime.parse response['last-modified']
+        remote_mtime > File.mtime(LOCAL_GTFS_DIR).to_datetime
       end
     end
   end

@@ -18,7 +18,7 @@ module Bojangles
   CONFIG = JSON.parse File.read('config/config.json')
 
   def prepare
-    unless GTFS::Files.up_to_date? && !ENV['REINITIALIZE']
+    if GTFS::Files.out_of_date? || ENV['REINITIALIZE']
       GTFS::Files.get_new!
       Stop.import GTFS::Data.stop_records
       Service.import GTFS::Data.calendar_records
@@ -28,7 +28,6 @@ module Bojangles
       Departure.import GTFS::Data.stop_time_records
     end
     Stop.activate CONFIG.fetch('stops')
-    binding.pry
   end
 
   def run
