@@ -9,8 +9,8 @@ ActiveRecord::Base.establish_connection(DATABASE_SETTINGS)
 unless ActiveRecord::Base.connection.tables.any? && !ENV['REINITIALIZE']
   ActiveRecord::Schema.define do
     create_table :departures, force: true do |t|
-      t.datetime :sdt
-      t.integer :route_id
+      t.integer :sdt
+      t.integer :trip_id
       t.integer :stop_id
     end
 
@@ -42,7 +42,7 @@ unless ActiveRecord::Base.connection.tables.any? && !ENV['REINITIALIZE']
     create_table :trips, force: true do |t|
       t.integer :route_id
       t.integer :service_id
-      t.integer :hastus_id
+      t.string :hastus_id
       t.string :headsign
     end
   end

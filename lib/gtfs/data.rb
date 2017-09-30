@@ -53,6 +53,20 @@ module GTFS
       end
       records
     end
+
+    def self.stop_time_records
+      records = []
+      filename = [LOCAL_GTFS_DIR, 'stop_times.txt'].join '/'
+      CSV.foreach filename, headers: true do |row|
+        hours, minutes, _seconds = row.fetch('departure_time').split(':').map(&:to_i)
+        records << {
+          trip_id: row.fetch('trip_id'),
+          stop_id: row.fetch('stop_id'),
+          sdt: hours * 60 + minutes
+        }
+      end
+      records
+    end
     
     def self.stop_records
       records = []

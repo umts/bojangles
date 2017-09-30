@@ -2,7 +2,8 @@ class Trip < ActiveRecord::Base
   belongs_to :route
   belongs_to :service
 
-  validates :hastus_id, :headsign, presence: true, uniqueness: true
+  validates :hastus_id, presence: true, uniqueness: true
+  validates :headsign, presence: true
 
   def self.import(records)
     records.each do |data|
@@ -10,5 +11,9 @@ class Trip < ActiveRecord::Base
       data[:service] = Service.find_by hastus_id: data[:service]
       where(data).first_or_create
     end
+  end
+
+  def self.on(date)
+    where service: Service.on(date)
   end
 end
