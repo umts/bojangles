@@ -39,6 +39,8 @@ module Bojangles
       time += 24 * 60
     end
 
+    # Avail and GTFS departures should be identical data structures
+    # with identical data.
     avail_departures = Avail.next_departures_from Stop.active, after: time
     gtfs_departures = Departure.next_from Stop.active, on: date, after: time
     binding.pry
