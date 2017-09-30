@@ -15,7 +15,6 @@ require_relative 'gtfs/files'
 require_relative 'gtfs/data'
 
 module Bojangles
-  CONFIG = JSON.parse File.read('config/config.json')
 
   def prepare
     if GTFS::Files.out_of_date? || ENV['REINITIALIZE']
@@ -27,10 +26,12 @@ module Bojangles
       Trip.import GTFS::Data.trip_records
       Departure.import GTFS::Data.stop_time_records
     end
-    Stop.activate CONFIG.fetch('stops')
   end
 
   def run
+    config = JSON.parse File.read('config/config.json')
+    Stop.activate config.fetch('stops')
+
     avail_departures = Avail.next_departures_from Stop.active, after: Time.now
     binding.pry
     effective_date = if Time.now.hour < 4
