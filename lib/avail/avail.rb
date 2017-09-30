@@ -55,6 +55,11 @@ module Avail
   def self.parse_json_unix_timestamp(timestamp)
     match_data = timestamp.match %r{/Date\((\d+)000-0[45]00\)/}
     timestamp = match_data.captures.first.to_i
-    Time.at(timestamp).change sec: 0
+    time = Time.at(timestamp)
+    minutes = time.seconds_since_midnight.to_i / 60
+    if time.hour < 4
+      minutes = minutes + 24 * 60
+    end
+    minutes
   end
 end

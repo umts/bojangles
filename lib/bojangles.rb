@@ -32,13 +32,15 @@ module Bojangles
     config = JSON.parse File.read('config/config.json')
     Stop.activate config.fetch('stops')
 
-    avail_departures = Avail.next_departures_from Stop.active, after: Time.now
+    date = Date.today
+    time = Time.now.seconds_since_midnight.to_i / 60
+    if Time.now.hour < 4
+      date = Date.yesterday
+      time += 24 * 60
+    end
+
+    avail_departures = Avail.next_departures_from Stop.active, after: time
+    gtfs_departures = Departure.next_from Stop.active, on: date, after: time
     binding.pry
-    effective_date = if Time.now.hour < 4
-                       Date.yesterday
-                     else Date.today
-                     end
-    gtfs_departures = Departure.next_from Stop.active,
-                                          on: effective_date, after: Time.now
   end
 end
