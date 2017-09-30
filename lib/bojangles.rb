@@ -10,14 +10,16 @@ require_relative 'models/service_exception'
 require_relative 'models/stop'
 require_relative 'models/trip'
 
+require_relative 'gtfs/files'
+require_relative 'gtfs/data'
+
 require_relative 'avail'
 require_relative 'comparator'
 require_relative 'github'
 
-require_relative 'gtfs/files'
-require_relative 'gtfs/data'
-
 module Bojangles
+
+  CONFIG = JSON.parse File.read('config/config.json')
 
   def prepare
     if GTFS::Files.out_of_date? || ENV['REINITIALIZE']
@@ -29,11 +31,11 @@ module Bojangles
       Trip.import GTFS::Data.trip_records
       Departure.import GTFS::Data.stop_time_records
     end
+    Issue.close GitHub.closed_issues
   end
 
   def run
-    config = JSON.parse File.read('config/config.json')
-    Stop.activate config.fetch('stops')
+    Stop.activate CONFIG.fetch('stops')
 
     date = Date.today
     time = Time.now.seconds_since_midnight.to_i / 60
@@ -47,9 +49,11 @@ module Bojangles
     avail_departures = Avail.next_departures_from Stop.active, after: time
     gtfs_departures = Departure.next_from Stop.active, on: date, after: time
 
-    new_issues, old_issues = Comparator.compare avail_departures, gtfs_departures
-    GitHub.create new_issues
-    GitHub.confirm old_issues
-    GitHub.remove_closed_issues
+    issue_data = Comparator.compare avail_departures, gtfs_departures
+    new_issues = Issue.process_new issue_data
+    old_issues = Issue.visible - new_issues
+    binding.pry
+    GitHub.create_or_reopen new_issues
+    GitHub.comment_resolved old_issues
   end
 end
