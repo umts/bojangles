@@ -1,8 +1,9 @@
 class Service < ActiveRecord::Base
+  has_many :exceptions, class_name: 'ServiceException'
+  has_many :trips
+
   validates :hastus_id, presence: true, uniqueness: true
   validates :start_date, :end_date, presence: true
-  
-  has_many :exceptions, class_name: 'ServiceException'
 
   serialize :weekdays, Array
   validate :weekdays_format

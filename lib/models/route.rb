@@ -1,4 +1,7 @@
 class Route < ActiveRecord::Base
+  has_many :issues
+  has_many :trips
+
   validates :number, :hastus_id, :avail_id, presence: true, uniqueness: true
 
   def self.import(records)

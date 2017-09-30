@@ -8,14 +8,14 @@ module Avail
   # Each value is a hash mapping from route direction data to the next time.
   # The route direction is data is route and headsign.
   def self.next_departures_from(stops, after:)
+    routes = Route.all.group_by(&:avail_id)
     times = {}
     stops.each do |stop|
       uri = departures_uri(stop.hastus_id)
       stop_departure = JSON.parse(Net::HTTP.get(uri)).first
       route_directions = stop_departure.fetch 'RouteDirections'
       route_directions.each do |route_dir|
-        route_id = route_dir.fetch('RouteId').to_s
-        route = Route.find_by avail_id: route_id
+        route = routes[route_dir.fetch('RouteId').to_s]
         route_dir.fetch('Departures').each do |departure|
           time = parse_json_unix_timestamp departure.fetch('SDT')
           next if time < after
@@ -35,7 +35,7 @@ module Avail
   end
 
   def self.route_mappings
-    routes_uri = URI([PVTA_BASE_API_URL, 'routes', 'getvisibleroutes'].join '/')
+    routes_uri = URI([PVTA_BASE_API_URL, 'routes', 'getvisibleroutes'].join('/'))
     response = JSON.parse Net::HTTP.get(routes_uri)
     routes = {}
     response.each do |route|

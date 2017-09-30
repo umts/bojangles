@@ -1,6 +1,7 @@
 class Trip < ActiveRecord::Base
   belongs_to :route
   belongs_to :service
+  has_many :departures
 
   validates :hastus_id, presence: true, uniqueness: true
   validates :headsign, presence: true

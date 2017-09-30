@@ -1,5 +1,7 @@
 class Stop < ActiveRecord::Base
   has_many :departures
+  has_many :issues
+
   validates :name, :hastus_id, presence: true, uniqueness: true
 
   scope :active, -> { where active: true }

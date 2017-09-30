@@ -3,13 +3,16 @@ require 'pry-byebug' # TODO: remove
 require_relative 'setup/database'
 
 require_relative 'models/departure'
+require_relative 'models/issue'
 require_relative 'models/route'
 require_relative 'models/service'
 require_relative 'models/service_exception'
 require_relative 'models/stop'
 require_relative 'models/trip'
 
-require_relative 'avail/avail'
+require_relative 'avail'
+require_relative 'comparator'
+require_relative 'github'
 
 require_relative 'gtfs/files'
 require_relative 'gtfs/data'
@@ -43,6 +46,10 @@ module Bojangles
     # with identical data.
     avail_departures = Avail.next_departures_from Stop.active, after: time
     gtfs_departures = Departure.next_from Stop.active, on: date, after: time
-    binding.pry
+
+    new_issues, old_issues = Comparator.compare avail_departures, gtfs_departures
+    GitHub.create new_issues
+    GitHub.confirm old_issues
+    GitHub.remove_closed_issues
   end
 end

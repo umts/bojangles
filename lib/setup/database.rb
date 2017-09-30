@@ -14,6 +14,15 @@ unless ActiveRecord::Base.connection.tables.any? && !ENV['REINITIALIZE']
       t.integer :stop_id
     end
 
+    create_table :issues, force: true do |t|
+      t.integer :route_id
+      t.integer :stop_id
+      t.string :headsign
+      t.string :issue_type
+      t.integer :github_number
+      t.boolean :open
+    end
+
     create_table :routes, force: true do |t|
       t.string :number
       t.string :hastus_id
