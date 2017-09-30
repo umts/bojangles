@@ -6,21 +6,32 @@ module Avail
 
   # Returns a hash keyed by stop.
   # Each value is a hash mapping from route direction data to the next time.
-  # The route direction is data is route Avail ID and headsign.
+  # The route direction is data is route and headsign.
   def self.next_departures_from(stops, after:)
     times = {}
     stops.each do |stop|
-      uri = departures_uri(stop_id)
+      uri = departures_uri(stop.hastus_id)
       stop_departure = JSON.parse(Net::HTTP.get(uri)).first
       route_directions = stop_departure.fetch 'RouteDirections'
       route_directions.each do |route_dir|
         route_id = route_dir.fetch('RouteId').to_s
-        route_dir.each do |departure|
+        route = Route.find_by avail_id: route_id
+        route_dir.fetch('Departures').each do |departure|
           time = parse_json_unix_timestamp departure.fetch('SDT')
           next if time < after
+          trip = departure.fetch 'Trip'
+          headsign = trip.fetch 'InternetServiceDesc'
+          route_data = [route, headsign]
+          times[stop] ||= {}
+          existing_time = times[stop][route_data]
+          times[stop][route_data] = if existing_time
+                                      [existing_time, time].min
+                                    else time
+                                    end
         end
       end
     end
+    times
   end
 
   def self.route_mappings
@@ -39,5 +50,11 @@ module Avail
 
   def self.departures_uri(stop_id)
     URI([PVTA_BASE_API_URL, 'stopdepartures', 'get', stop_id].join('/'))
+  end
+
+  def self.parse_json_unix_timestamp(timestamp)
+    match_data = timestamp.match %r{/Date\((\d+)000-0[45]00\)/}
+    timestamp = match_data.captures.first.to_i
+    Time.at(timestamp).change sec: 0
   end
 end

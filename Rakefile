@@ -6,4 +6,9 @@ namespace :bojangles do
   task :prepare do
     Bojangles.prepare
   end
+
+  desc 'Compare Avail realtime feed against GTFS departures'
+  task :run do
+    Bojangles.run
+  end
 end
