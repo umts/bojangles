@@ -5,6 +5,7 @@ require 'zipruby'
 module GTFS
   module Files
     LOCAL_GTFS_DIR = File.expand_path('../../../gtfs_files', __FILE__)
+    IN_PROGRESS_FILE = File.expand_path('../../../import', __FILE__)
     REMOTE_GTFS_PROTOCOL = 'http://'
     REMOTE_GTFS_HOST =     'pvta.com'
     REMOTE_GTFS_PATH =     '/g_trans/google_transit.zip'
@@ -27,6 +28,18 @@ module GTFS
           end
         end
       end
+    end
+
+    def self.import_in_progress?
+      File.file? IN_PROGRESS_FILE
+    end
+
+    def self.mark_import_in_progress
+      FileUtils.touch IN_PROGRESS_FILE
+    end
+
+    def self.mark_import_done
+      FileUtils.rm IN_PROGRESS_FILE
     end
 
     # Is the remote GTFS archive more up-to-date than our cached files?
