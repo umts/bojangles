@@ -8,7 +8,7 @@ module Avail
   # Each value is a hash mapping from route direction data to the next time.
   # The route direction is data is route and headsign.
   def self.next_departures_from(stops, after:)
-    routes = Route.all.group_by(&:avail_id)
+    routes = Hash[Route.all.map{ |r| [r.avail_id, r] }]
     times = {}
     stops.each do |stop|
       uri = departures_uri(stop.hastus_id)

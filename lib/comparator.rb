@@ -12,6 +12,7 @@ module Comparator
                         alternatives: [avail_time] }
           end
         else
+          binding.pry
           other_signs = alternative_headsigns(avail_departures, stop, route)
           issues << { route: route, stop: stop, headsign: headsign,
                       issue_type: 'missing', sdt: gtfs_time,
@@ -20,6 +21,7 @@ module Comparator
       end
     end
     issues
+    []
   end
 
   private
