@@ -16,10 +16,12 @@ class Departure < ActiveRecord::Base
   end
 
   def self.import(records)
+    trips = Hash[Trip.pluck(:hastus_id, :id)]
+    stops = Hash[Stop.pluck(:hastus_id, :id)]
     records.each do |data|
-      trip = Trip.find_by hastus_id: data[:trip_id]
       sdt = data[:sdt]
-      stop = Stop.find_by hastus_id: data[:stop_id]
+      trip = trips[data[:trip_id]]
+      stop = stops[data[:stop_id]]
       where(sdt: sdt, trip: trip, stop: stop).first_or_create
     end
   end

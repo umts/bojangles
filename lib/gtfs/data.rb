@@ -55,17 +55,30 @@ module GTFS
     end
 
     def self.stop_time_records
-      records = []
       filename = [LOCAL_GTFS_DIR, 'stop_times.txt'].join '/'
+      trip_stops = {}
+      # Start by finding all the matching trip stops for each trip.
       CSV.foreach filename, headers: true do |row|
         hours, minutes, _seconds = row.fetch('departure_time').split(':').map(&:to_i)
-        records << {
-          trip_id: row.fetch('trip_id'),
-          stop_id: row.fetch('stop_id'),
-          sdt: hours * 60 + minutes
-        }
+        trip_id = row.fetch('trip_id')
+        stop_id = row.fetch('stop_id')
+        sdt = hours * 60 + minutes
+        trip_stops[trip_id] ||= []
+        trip_stops[trip_id] << [stop_id, sdt]
       end
-      records
+      # Discard the last time in a trip, since this is an arrival,
+      # not a departure.
+      departures = []
+      trip_stops.each_pair do |trip_id, times|
+        sorted_times = times.sort_by do |_stop_id, time|
+          time
+        end
+        sorted_times.pop
+        sorted_times.each do |stop_id, time|
+          departures << { trip_id: trip_id, stop_id: stop_id, sdt: time }
+        end
+      end
+      departures
     end
     
     def self.stop_records
