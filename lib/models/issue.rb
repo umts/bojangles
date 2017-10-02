@@ -45,7 +45,8 @@ class Issue < ActiveRecord::Base
 
   def self.close(issues)
     issues.each do |issue|
-      Issue.find_by(number: issue.fetch('number')).update closed: true
+      issue = find_by github_number: issue.fetch('number')
+      issue.update closed: true if issue.present?
     end
   end
 

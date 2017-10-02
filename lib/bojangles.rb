@@ -15,11 +15,12 @@ require_relative 'gtfs/data'
 
 require_relative 'avail'
 require_relative 'comparator'
-require_relative 'github'
+require_relative 'github/client'
 
 module Bojangles
 
   CONFIG = JSON.parse File.read('config/config.json')
+  GITHUB_TOKEN = CONFIG.fetch('github_token')
 
   def prepare
     if GTFS::Files.out_of_date? || ENV['REINITIALIZE']
@@ -33,7 +34,8 @@ module Bojangles
       Departure.import GTFS::Data.stop_time_records
       GTFS::Files.mark_import_done
     end
-    Issue.close GitHub.closed_issues
+    client = GitHub::Client.new token: GITHUB_TOKEN
+    Issue.close client.closed_issues
   end
 
   def run
@@ -55,9 +57,9 @@ module Bojangles
       issue_data = Comparator.compare avail_departures, gtfs_departures
       new_issues = Issue.process_new issue_data
       old_issues = Issue.visible - new_issues
-      binding.pry
-      GitHub.create_or_reopen new_issues
-      GitHub.comment_resolved old_issues
+      client = GitHub::Client.new token: GITHUB_TOKEN
+      client.create_or_reopen new_issues
+      client.comment_resolved old_issues
     end
   end
 end
