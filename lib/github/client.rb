@@ -9,13 +9,13 @@ module GitHub
     def create_or_reopen(issues)
       issues.each do |issue|
         if issue.github_number.blank?
-          gh_issue = @client.create_issue 'umts/realtime_issues',
+          gh_issue = @client.create_issue 'umts/realtime-issues',
                                           issue.title,
                                           issue.text,
                                           labels: 'needs triage'
           issue.update github_number: gh_issue
         elsif !open? || !visible? # don't keep commenting on constant issues
-          @client.add_comment 'umts/realtime_issues',
+          @client.add_comment 'umts/realtime-issues',
                               issue.github_number,
                               issue.text
           issue.update visible: true
