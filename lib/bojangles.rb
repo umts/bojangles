@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'pry-byebug' # TODO: remove
-
 require_relative 'setup/database'
 
 require_relative 'models/departure'
