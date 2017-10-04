@@ -2,7 +2,7 @@
 
 This script continually monitors the PVTA bus departures realtime feed for issues.
 
-First, create a `config.json` file according to the `config.json.example` file.
+First in `config`, create a `config.json` file according to the `config.json.example` file, and a `database.json` file according to `database.json.example`.
 
 With Bundler and the correct Ruby installed, run:
 
@@ -20,7 +20,7 @@ For more information, [see the whenever docs](https://github.com/javan/whenever)
 
 You can also test the process as you like with:
 
-> bundle exec rake bojangles:go
+> bundle exec rake bojangles:run
 
 # How does it work?
 
@@ -29,29 +29,3 @@ In short, bojangles compares cached GTFS departure data which we obtain from PVT
 # What assumptions does it make?
 
 [Click here](https://github.com/umts/bojangles/tree/master/DETAILS.md).
-
-# Development
-
-We develop using [Mailcatcher](http://mailcatcher.me) - thanks to those folks for releasing their fantastic tool open-source.
-
-They discourage including it in the Gemfile, and we listened - so you'll need to install it manually:
-
-> gem install mailcatcher
-
-Then run their daemon:
-
-> mailcatcher
-
-Setting the environment value in `config.json` to `"development"` will send emails to Mailcatcher's local SMTP server.
-
-Then navigate to localhost:1080 to see your email output.
-
-# Testing
-
-You'll need RSpec.
-
-> gem install rspec
-
-# Attributions
-
-Much thanks to the whenever and [Pony](https://github.com/benprew/pony) developers for releasing their code open-source.
