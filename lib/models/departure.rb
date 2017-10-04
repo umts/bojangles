@@ -19,10 +19,9 @@ class Departure < ActiveRecord::Base
     trips = Hash[Trip.pluck(:hastus_id, :id)]
     stops = Hash[Stop.pluck(:hastus_id, :id)]
     records.each do |data|
-      sdt = data[:sdt]
-      trip = trips[data[:trip_id]]
-      stop = stops[data[:stop_id]]
-      where(sdt: sdt, trip: trip, stop: stop).first_or_create
+      data[:trip_id] = trips[data[:trip_id]]
+      data[:stop_id] = stops[data[:stop_id].to_i]
+      where(data).first_or_create
     end
   end
 
