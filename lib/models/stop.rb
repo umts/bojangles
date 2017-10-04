@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Stop < ActiveRecord::Base
   has_many :departures
   has_many :issues

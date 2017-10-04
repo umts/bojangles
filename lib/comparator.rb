@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Comparator
   def self.compare(avail_departures, gtfs_departures)
     issues = []

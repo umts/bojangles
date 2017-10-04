@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'pry-byebug' # TODO: remove
 
 require_relative 'setup/database'
@@ -18,7 +20,6 @@ require_relative 'comparator'
 require_relative 'github/client'
 
 module Bojangles
-
   CONFIG = JSON.parse File.read('config/config.json')
   GITHUB_TOKEN = CONFIG.fetch('github_token')
   DEPARTURE_FUTURE_MINUTES = 3 * 60

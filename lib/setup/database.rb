@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require 'active_record'
 require 'json'
 require 'mysql2'
 
-DATABASE_SETTINGS = JSON.parse(File.read 'config/database.json')
+DATABASE_SETTINGS = JSON.parse File.read('config/database.json')
 
 ActiveRecord::Base.establish_connection(DATABASE_SETTINGS)
 
@@ -59,4 +61,3 @@ if ActiveRecord::Base.connection.tables.none? || ENV['REINITIALIZE']
     end
   end
 end
-

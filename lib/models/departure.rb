@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Departure < ActiveRecord::Base
   FUTURE_HOURS = 3
 
@@ -9,9 +11,9 @@ class Departure < ActiveRecord::Base
   delegate :headsign, to: :trip
   delegate :route, to: :trip
 
-  scope :in, -> (range) { where sdt: range }
-  scope :at, -> (stop) { where stop: stop }
-  scope :on, -> (date) { where trip: Trip.on(date) }
+  scope :in, ->(range) { where sdt: range }
+  scope :at, ->(stop) { where stop: stop }
+  scope :on, ->(date) { where trip: Trip.on(date) }
 
   def route_data
     [route, trip.headsign]

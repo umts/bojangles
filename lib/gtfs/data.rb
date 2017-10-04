@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'csv'
 
 module GTFS
@@ -14,7 +16,7 @@ module GTFS
           end_date: Date.parse(row.fetch('end_date'))
         }
         weekdays = row.values_at(*%w[sunday monday tuesday wednesday thursday friday saturday])
-                      .map{ |i| i == '1' }
+                      .map { |i| i == '1' }
         record[:weekdays] = weekdays
         records << record
       end
@@ -80,7 +82,7 @@ module GTFS
       end
       departures
     end
-    
+
     def self.stop_records
       records = []
       filename = [LOCAL_GTFS_DIR, 'stops.txt'].join '/'

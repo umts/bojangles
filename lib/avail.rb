@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'json'
 require 'net/http'
 
@@ -8,7 +10,7 @@ module Avail
   # Each value is a hash mapping from route direction data to the next time.
   # The route direction is data is route and headsign.
   def self.next_departures_from(stops, after:)
-    routes = Hash[Route.all.map{ |r| [r.avail_id, r] }]
+    routes = Hash[Route.all.map { |r| [r.avail_id, r] }]
     times = {}
     stops.each do |stop|
       uri = departures_uri(stop.hastus_id)
@@ -57,9 +59,7 @@ module Avail
     timestamp = match_data.captures.first.to_i
     time = Time.at(timestamp)
     minutes = time.seconds_since_midnight.to_i / 60
-    if time.hour < 4
-      minutes = minutes + 24 * 60
-    end
+    minutes += 24 * 60 if time.hour < 4
     minutes
   end
 end

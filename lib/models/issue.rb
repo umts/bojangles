@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Issue < ActiveRecord::Base
   belongs_to :route
   belongs_to :stop
@@ -26,7 +28,7 @@ class Issue < ActiveRecord::Base
     if alternatives.present?
       closer = case issue_type
                when 'incorrect'
-                 "Saw SDT: #{alternatives.map{|t| format_sdt(t) }.join(', ')}"
+                 "Saw SDT: #{alternatives.map { |t| format_sdt(t) }.join(', ')}"
                when 'missing'
                  "Found alternatives: #{alternatives.join(', ')}"
                end
@@ -47,9 +49,9 @@ class Issue < ActiveRecord::Base
 
   def self.process_new(issue_data)
     issue_data.map do |data|
-      issue = where(data.slice :route, :stop, :headsign, :issue_type)
-             .first_or_create
-      issue.update(data.slice :sdt, :alternatives)
+      issue = where(data.slice(:route, :stop, :headsign, :issue_type))
+              .first_or_create
+      issue.update(data.slice(:sdt, :alternatives))
       issue
     end
   end
@@ -58,10 +60,7 @@ class Issue < ActiveRecord::Base
     "#{timestamp}: This error is no longer visible."
   end
 
-  private
-
   def self.timestamp
     Time.now.strftime '%l:%M %P'
   end
-
 end

@@ -2,8 +2,8 @@
 
 source 'https://rubygems.org'
 
-gem 'activesupport', '~> 5.1'
 gem 'activerecord', '~> 5.1'
+gem 'activesupport', '~> 5.1'
 gem 'mysql2', '~> 0.4'
 gem 'octokit', '~> 4.7'
 gem 'rake', '~> 12.0'

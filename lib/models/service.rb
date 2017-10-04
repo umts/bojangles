@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Service < ActiveRecord::Base
   has_many :exceptions, class_name: 'ServiceException'
   has_many :trips
@@ -45,7 +47,7 @@ class Service < ActiveRecord::Base
   private
 
   def weekdays_format
-    unless weekdays.length == 7 && weekdays.all?{ |d| [true, false].include? d }
+    unless weekdays.length == 7 && weekdays.all? { |d| [true, false].include? d }
       errors.add :weekdays, 'must be a boolean array of length 7'
     end
   end
