@@ -24,8 +24,6 @@ module Comparator
     issues
   end
 
-  private
-
   def self.alternative_headsigns(avail_departures, stop, desired_route)
     avail_departures[stop].values.map do |(route, headsign)|
       headsign if route == desired_route

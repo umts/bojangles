@@ -48,8 +48,6 @@ module Avail
     routes
   end
 
-  private
-
   def self.departures_uri(stop_id)
     URI([PVTA_BASE_API_URL, 'stopdepartures', 'get', stop_id].join('/'))
   end
