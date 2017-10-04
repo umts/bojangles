@@ -19,15 +19,10 @@ class Issue < ActiveRecord::Base
 
   def text
     opener = 'This error has recurred.' unless open? && visible?
-    body = case issue_type
-           when 'incorrect' then <<~TEXT
-             #{Issue.timestamp}: Route #{route.number} with headsign #{headsign} is missing.
-             Expected to be departing from #{stop.name} at #{format_sdt(sdt)}.
-             TEXT
-           when 'missing' then <<~TEXT
-             TODO
-             TEXT
-           end
+    body = <<~TEXT
+      #{Issue.timestamp}: Route #{route.number} with headsign #{headsign} is #{issue_type}.
+      Expected to be departing from #{stop.name} at #{format_sdt(sdt)}.
+    TEXT
     if alternatives.present?
       closer = case issue_type
                when 'incorrect'

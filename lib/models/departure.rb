@@ -1,4 +1,6 @@
 class Departure < ActiveRecord::Base
+  FUTURE_HOURS = 3
+
   belongs_to :trip
   belongs_to :stop
 
@@ -7,7 +9,7 @@ class Departure < ActiveRecord::Base
   delegate :headsign, to: :trip
   delegate :route, to: :trip
 
-  scope :after, -> (sdt) { where 'sdt >= ?', sdt }
+  scope :in, -> (range) { where sdt: range }
   scope :at, -> (stop) { where stop: stop }
   scope :on, -> (date) { where trip: Trip.on(date) }
 
@@ -30,9 +32,9 @@ class Departure < ActiveRecord::Base
   # The result is a hash keyed by stops.
   # Each value is a hash mapping from route data to the next departure time.
   # Route data is the combination of a route and a trip headsign.
-  def self.next_from(stops, on:, after:)
+  def self.next_from(stops, on:, in_range:)
     times = {}
-    departures = on(on).after(after).at(stops)
+    departures = on(on).in(in_range).at(stops)
     stops.each do |stop|
       times[stop] = departures.at(stop).group_by(&:route_data)
       times[stop].each_pair do |route_data, deps|

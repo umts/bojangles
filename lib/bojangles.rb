@@ -21,6 +21,7 @@ module Bojangles
 
   CONFIG = JSON.parse File.read('config/config.json')
   GITHUB_TOKEN = CONFIG.fetch('github_token')
+  DEPARTURE_FUTURE_MINUTES = 3 * 60
 
   def prepare
     if GTFS::Files.out_of_date? || ENV['REINITIALIZE']
@@ -48,11 +49,13 @@ module Bojangles
         date = Date.yesterday
         time += 24 * 60
       end
+      time_range = time..(time + DEPARTURE_FUTURE_MINUTES)
 
       # Avail and GTFS departures should be identical data structures
       # with identical data.
       avail_departures = Avail.next_departures_from Stop.active, after: time
-      gtfs_departures = Departure.next_from Stop.active, on: date, after: time
+      gtfs_departures = Departure.next_from Stop.active, on: date,
+                                                         in_range: time_range
 
       issue_data = Comparator.compare avail_departures, gtfs_departures
       new_issues = Issue.process_new issue_data

@@ -20,8 +20,6 @@ module Comparator
       end
     end
     issues
-    binding.pry
-    []
   end
 
   private
