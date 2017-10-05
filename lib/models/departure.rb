@@ -45,8 +45,4 @@ class Departure < ActiveRecord::Base
     end
     times
   end
-
-  def self.on(date)
-    where trip: Trip.on(date)
-  end
 end

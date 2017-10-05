@@ -10,18 +10,6 @@ class Service < ActiveRecord::Base
   serialize :weekdays, Array
   validate :weekdays_format
 
-  def dates
-    (start_date..end_date).to_a + dates_added - dates_removed
-  end
-
-  def dates_added
-    exceptions.where(exception_type: 'add').pluck :date
-  end
-
-  def dates_removed
-    exceptions.where(exception_type: 'remove').pluck :date
-  end
-
   def self.added_on(date)
     joins(:exceptions).where(service_exceptions: { date: date,
                                                    exception_type: 'add' })
