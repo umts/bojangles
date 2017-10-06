@@ -8,7 +8,7 @@ module Avail
 
   # Returns a hash keyed by stop.
   # Each value is a hash mapping from route direction data to the next time.
-  # The route direction is data is route and headsign.
+  # The route direction data is route and headsign.
   def self.next_departures_from(stops, after:)
     routes = Hash[Route.all.map { |r| [r.avail_id, r] }]
     times = {}
