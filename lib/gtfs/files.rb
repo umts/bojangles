@@ -20,7 +20,7 @@ module GTFS
       begin
         zipfile = Net::HTTP.get URI(gtfs_url)
       rescue SocketError
-        return # TOOO: tell someone something's wrong
+        return # TODO: tell someone something's wrong
       end
       Zip::Archive.open_buffer zipfile do |archive|
         archive.each do |file|
