@@ -2,19 +2,15 @@
 
 require_relative 'lib/bojangles'
 include Bojangles
-require_relative 'lib/gtfs_parser'
-include GtfsParser
 
 namespace :bojangles do
-  desc 'Compare realtime and GTFS data for discrepancies'
-  task :go do
-    Bojangles.go!
+  desc 'Parse and store GTFS departure data for the day'
+  task :prepare do
+    Bojangles.prepare
   end
 
-  desc 'Cache GTFS departure data for the day'
-  task :daily do
-    # Cache the mapping from route number to Avail route ID
-    Bojangles.cache_route_mappings!
-    Bojangles.prepare!
+  desc 'Compare Avail realtime feed against GTFS departures'
+  task :run do
+    Bojangles.run
   end
 end

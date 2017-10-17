@@ -1,162 +1,67 @@
 # frozen_string_literal: true
 
-require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/hash/conversions'
-require 'digest'
-require 'json'
-require 'net/http'
-require 'octokit'
+require_relative 'setup/database'
 
-require_relative 'departure_comparator'
-include DepartureComparator
+require_relative 'models/departure'
+require_relative 'models/issue'
+require_relative 'models/route'
+require_relative 'models/service'
+require_relative 'models/service_exception'
+require_relative 'models/stop'
+require_relative 'models/trip'
 
-# Bojangles is the main driver of the script, and is responsible
-# for communicating with the Avail realtime feed.
+require_relative 'gtfs/files'
+require_relative 'gtfs/data'
+
+require_relative 'avail'
+require_relative 'comparator'
+require_relative 'github/client'
+
 module Bojangles
-  raise <<~MESSAGE unless File.file? 'config/config.json'
-    No config file found. Please see the config.json.example file \
-    and create a config.json file to match.
-  MESSAGE
   CONFIG = JSON.parse File.read('config/config.json')
-
-  PVTA_BASE_API_URL = 'http://bustracker.pvta.com/InfoPoint/rest'
-  ROUTES_URI = URI([PVTA_BASE_API_URL, 'routes', 'getvisibleroutes'].join('/'))
-
   GITHUB_TOKEN = CONFIG.fetch('github_token')
+  DEPARTURE_FUTURE_MINUTES = 3 * 60
 
-  CACHED_ROUTES_FILE = 'route_mappings.json'
-
-  # Cache the mapping from avail route ID to route number
-  def cache_route_mappings!
-    response = JSON.parse(Net::HTTP.get(ROUTES_URI))
-    routes = {}
-    response.each do |route|
-      real_name = route.fetch 'ShortName'
-      avail_id = route.fetch 'RouteId'
-      routes[avail_id] = real_name
+  def prepare
+    if GTFS::Files.out_of_date? || ENV['REINITIALIZE']
+      GTFS::Files.mark_import_in_progress
+      GTFS::Files.get_new!
+      Stop.import GTFS::Data.stop_records
+      Service.import GTFS::Data.calendar_records
+      ServiceException.import GTFS::Data.exception_records
+      Route.import GTFS::Data.route_records(Avail.route_mappings)
+      Trip.import GTFS::Data.trip_records
+      Departure.import GTFS::Data.stop_time_records
+      GTFS::Files.mark_import_done
     end
-    File.open CACHED_ROUTES_FILE, 'w' do |file|
-      file.puts routes.to_json
-    end
+    client = GitHub::Client.new token: GITHUB_TOKEN
+    Issue.close client.closed_issues
   end
 
-  # Fetch the cached route mappings
-  def cached_route_mappings
-    JSON.parse File.read(CACHED_ROUTES_FILE)
-  end
+  def run
+    unless GTFS::Files.import_in_progress?
+      Stop.activate CONFIG.fetch('stops')
 
-  def departures_uri(stop_id)
-    URI([PVTA_BASE_API_URL, 'stopdepartures', 'get', stop_id].join('/'))
-  end
-
-  # Return the hash mapping route number,
-  # headsign, and stop_id to the provided time
-  def get_avail_departure_times!(stop_ids)
-    times = {}
-    stop_ids.each do |stop_id|
-      departures_endpoint = departures_uri(stop_id)
-      stop_departure = JSON.parse(Net::HTTP.get(departures_endpoint)).first
-      route_directions = stop_departure.fetch 'RouteDirections'
-      route_directions.each do |route|
-        route_id = route.fetch('RouteId').to_s
-        route_number = cached_route_mappings[route_id]
-        # Look for the soonest departure which is after now.
-        route.fetch('Departures').each do |departure|
-          time = parse_json_unix_timestamp(departure.fetch 'SDT')
-          next if time < Time.now
-          trip = departure.fetch 'Trip'
-          headsign = trip.fetch 'InternetServiceDesc' # headsign
-          route_data = [route_number, headsign, stop_id]
-          existing_time = times[route_data]
-          times[route_data] = if existing_time
-                                [existing_time, time].min
-                              else time
-                              end
-        end
+      date = Date.today
+      time = Time.now.seconds_since_midnight.to_i / 60
+      if Time.now.hour < 4
+        date = Date.yesterday
+        time += 24 * 60
       end
-    end
-    times
-  end
+      time_range = time..(time + DEPARTURE_FUTURE_MINUTES)
 
-  # Cache the error messages
-  def cache_error_messages!(current_errors)
-    File.open 'error_messages.json', 'w' do |file|
-      file.puts current_errors.to_json
-    end
-  end
+      # Avail and GTFS departures should be identical data structures
+      # with identical data.
+      avail_departures = Avail.next_departures_from Stop.active, after: time
+      gtfs_departures = Departure.next_from Stop.active, on: date,
+                                                         in_range: time_range
 
-  # Fetch the cached error messages
-  def cached_error_messages
-    if File.file? 'error_messages.json'
-      JSON.parse File.read('error_messages.json')
-    else {}
-    end
-  end
-
-  # Only the first two lines of an error message need to match for us to decide
-  # that we've already sent it.
-  def compare_errors(current_errors, old_errors)
-    new_errors = current_errors.reject do |error|
-      old_errors.keys.any? { |old| error[:message].lines.first(2) == old.lines.first(2) }
-    end
-    resolved_errors = old_errors.reject do |error|
-      current_errors.any? { |new| error.lines.first(2) == new[:message].lines.first(2) }
-    end
-    [new_errors, resolved_errors]
-  end
-
-  # rubocop:disable Style/GuardClause
-  def go!
-    errors = DepartureComparator.compare
-    current_time = Time.now
-    new_errors, resolved_errors = compare_errors(errors, cached_error_messages)
-    issue_numbers = cached_error_messages
-    if new_errors.present? || resolved_errors.present?
-      client = Octokit::Client.new access_token: GITHUB_TOKEN
-      new_errors.each do |error|
-        title, message = error.values_at :title, :message
-        message_text = [Time.now.strftime('%l:%M %P'), message].join ': '
-        issue = client.create_issue 'umts/realtime-issues', title, message_text,
-                                    labels: 'needs triage'
-        issue_numbers[message] = issue.number
-      end
-      resolved_errors.each_pair do |message, issue_number|
-        comment = "#{Time.now.strftime('%l:%M %P')}: This error is no longer present."
-        client.add_comment 'umts/realtime-issues', issue_number, comment
-        issue_numbers.delete message
-      end
-    end
-    cache_error_messages!(issue_numbers)
-    if new_errors.present?
-      update_log_file! to: { current_time: current_time,
-                             new_error: new_errors }
-    end
-  end
-  # rubocop:enable Style/GuardClause
-
-  def parse_json_unix_timestamp(timestamp)
-    match_data = timestamp.match %r{/Date\((\d+)000-0[45]00\)/}
-    timestamp = match_data.captures.first.to_i
-    Time.at(timestamp).change sec: 0
-  end
-
-  def prepare!
-    stops = CONFIG.fetch 'stops'
-    GtfsParser.prepare stops
-  end
-
-  def update_log_file!(to:)
-    FileUtils.mkdir_p LOG
-    File.open File.join(LOG, "#{todays_date}.txt"), 'a' do |file|
-      time = '[' + to[:current_time].strftime('%h %d %Y %R') + ']'
-      to.delete(:current_time)
-      to.keys.each do |error_type|
-        to[error_type].each do |error_message|
-          file.puts <<~LOG_ENTRY
-            #{time} #{error_type.to_s.humanize}: "#{error_message}"
-          LOG_ENTRY
-        end
-      end
+      issue_data = Comparator.compare avail_departures, gtfs_departures
+      new_issues = Issue.process_new issue_data
+      old_issues = Issue.visible - new_issues
+      client = GitHub::Client.new token: GITHUB_TOKEN
+      client.create_or_reopen new_issues
+      client.comment_resolved old_issues
     end
   end
 end

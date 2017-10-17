@@ -2,11 +2,13 @@
 
 source 'https://rubygems.org'
 
-gem 'activesupport'
+gem 'activerecord', '~> 5.1'
+gem 'activesupport', '~> 5.1'
+gem 'mysql2', '~> 0.4'
 gem 'octokit', '~> 4.7'
-gem 'rake'
-gem 'whenever'
-gem 'zipruby'
+gem 'rake', '~> 12.0'
+gem 'whenever', '~> 0.9'
+gem 'zipruby', '~> 0.3'
 
 group :development, :test do
   gem 'capistrano', require: false
