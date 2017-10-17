@@ -23,10 +23,6 @@ Metrics/ParameterLists:
 Metrics/PerceivedComplexity:
   Max: 9
 
-# It isn't a reader method. We're actually going and getting stuff.
-Style/AccessorMethodName:
-  Enabled: false
-
 # We'll come back to this.
 Style/Documentation:
   Enabled: false

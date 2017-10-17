@@ -1,5 +1,2 @@
-{
-  "stops": ["Studio Arts Building", "Fine Arts Center", "Haigis Mall"],
-  "github_token": "9fe5e3055d8f4e2fd70180cf1fc1616db6b2b948",
-  "environment": "development"
-}
+{ "stops": ["Studio Arts Building", "Fine Arts Center", "Haigis Mall"],
+  "github_token": "9fe5e3055d8f4e2fd70180cf1fc1616db6b2b948" }
