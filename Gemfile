@@ -11,7 +11,7 @@ gem 'whenever', '~> 0.9'
 gem 'zipruby', '~> 0.3'
 
 group :development, :test do
-  gem 'capistrano', require: false
+  gem 'capistrano', '3.9.0', require: false
   gem 'capistrano-bundler', require: false
   gem 'capistrano-pending', require: false
   gem 'pry-byebug', require: false

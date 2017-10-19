@@ -15,7 +15,7 @@ module GitHub
                                           issue.title,
                                           issue.text,
                                           labels: 'needs triage'
-          issue.update github_number: gh_issue
+          issue.update github_number: gh_issue[:number]
         elsif !open? || !visible? # don't keep commenting on constant issues
           @client.add_comment 'umts/realtime-issues',
                               issue.github_number,
