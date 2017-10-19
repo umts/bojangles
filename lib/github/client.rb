@@ -30,6 +30,7 @@ module GitHub
         @client.add_comment 'umts/realtime-issues',
                             issue.github_number,
                             Issue.resolution_message
+        issue.update visible: false
       end
     end
 
