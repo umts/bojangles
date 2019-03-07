@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-env 'PATH', '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+env 'PATH', '/opt/ruby/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 
 job_type :rake, 'cd :path && bundle exec rake :task'
 
