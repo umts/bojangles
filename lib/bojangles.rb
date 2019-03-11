@@ -20,6 +20,7 @@ require_relative 'github/client'
 module Bojangles
   CONFIG = JSON.parse File.read('config/config.json')
   GITHUB_TOKEN = CONFIG.fetch('github_token')
+  GITHUB_REPO = CONFIG['github_repo']
   DEPARTURE_FUTURE_MINUTES = 3 * 60
 
   def prepare
@@ -34,7 +35,11 @@ module Bojangles
       Departure.import GTFS::Data.stop_time_records
       GTFS::Files.mark_import_done
     end
-    client = GitHub::Client.new token: GITHUB_TOKEN
+    options = {}.tap do |opts|
+      opts[:token] = GITHUB_TOKEN
+      opts[:repo] = GITHUB_REPO if GITHUB_REPO
+    end
+    client = GitHub::Client.new options
     Issue.close client.closed_issues
   end
 
