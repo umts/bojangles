@@ -16,6 +16,7 @@ module GTFS
     def self.get_new!
       FileUtils.rm_rf LOCAL_GTFS_DIR
       FileUtils.mkdir_p LOCAL_GTFS_DIR
+      FileUtils.touch "#{LOCAL_GTFS_DIR}/.keep"
       gtfs_url = REMOTE_GTFS_PROTOCOL + REMOTE_GTFS_HOST + REMOTE_GTFS_PATH
       begin
         zipfile = Net::HTTP.get URI(gtfs_url)
@@ -47,6 +48,7 @@ module GTFS
     # Is the remote GTFS archive more up-to-date than our cached files?
     def self.out_of_date?
       return false unless File.directory? LOCAL_GTFS_DIR
+      return true unless File.exists? "#{LOCAL_GTFS_DIR}/agency.txt"
       http = Net::HTTP.new REMOTE_GTFS_HOST
       begin
         response = http.head REMOTE_GTFS_PATH
