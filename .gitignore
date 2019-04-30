@@ -1,4 +1,5 @@
 gtfs_files/**/*
+import_in_progress
 cached_departures.json
 cached_stops.json
 emailed_status.json

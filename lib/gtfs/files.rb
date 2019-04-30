@@ -16,6 +16,7 @@ module GTFS
     def self.get_new!
       FileUtils.rm_rf LOCAL_GTFS_DIR
       FileUtils.mkdir_p LOCAL_GTFS_DIR
+      FileUtils.touch "#{LOCAL_GTFS_DIR}/.keep"
       gtfs_url = REMOTE_GTFS_PROTOCOL + REMOTE_GTFS_HOST + REMOTE_GTFS_PATH
       begin
         zipfile = Net::HTTP.get URI(gtfs_url)
