@@ -19,7 +19,12 @@ class Service < ActiveRecord::Base
 
   def self.import(records)
     records.each do |data|
-      where(data).first_or_create!
+      record = find_by(data.slice(:hastus_id))
+      if record.present?
+        record.update! data
+      else
+        create! data
+      end
     end
   end
 
