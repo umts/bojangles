@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+require 'active_record'
+
+require 'models/route'
+require 'models/service'
+
 class Trip < ActiveRecord::Base
   belongs_to :route
   belongs_to :service

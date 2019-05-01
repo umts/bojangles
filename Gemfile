@@ -14,10 +14,12 @@ group :development, :test do
   gem 'capistrano', '3.9.0', require: false
   gem 'capistrano-bundler', require: false
   gem 'capistrano-pending', require: false
+  gem 'fancy_irb'
   gem 'pry-byebug', require: false
   gem 'rspec'
   gem 'rubocop'
   gem 'simplecov', require: false
   gem 'timecop'
   gem 'webmock'
+  gem 'wirb'
 end

@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+require 'active_record'
+
+require 'models/trip'
+require 'models/stop'
+
 class Departure < ActiveRecord::Base
   FUTURE_HOURS = 3
 

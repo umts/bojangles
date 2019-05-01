@@ -1,21 +1,23 @@
 # frozen_string_literal: true
 
-require_relative 'setup/database'
+require 'json'
 
-require_relative 'models/departure'
-require_relative 'models/issue'
-require_relative 'models/route'
-require_relative 'models/service'
-require_relative 'models/service_exception'
-require_relative 'models/stop'
-require_relative 'models/trip'
+require 'avail'
+require 'comparator'
 
-require_relative 'gtfs/files'
-require_relative 'gtfs/data'
+require 'setup/database'
+require 'models/departure'
+require 'models/issue'
+require 'models/route'
+require 'models/service'
+require 'models/service_exception'
+require 'models/stop'
+require 'models/trip'
 
-require_relative 'avail'
-require_relative 'comparator'
-require_relative 'github/client'
+require 'github/client'
+
+require 'gtfs/files'
+require 'gtfs/data'
 
 module Bojangles
   CONFIG = JSON.parse File.read('config/config.json')

@@ -1,0 +1,36 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'irb'
+require 'irb/completion'
+require 'wirb'
+require 'fancy_irb'
+require 'pathname'
+
+$_libdir = Pathname(__dir__).join('..', 'lib')
+$LOAD_PATH.unshift $_libdir.to_path
+
+def reload!
+  verbose, $VERBOSE = $VERBOSE, nil
+  loaded = $_libdir.glob('**/*.rb').map do |lib|
+    load lib
+  end.all?
+  $VERBOSE = verbose
+  return loaded
+end
+
+reload!
+
+STDOUT.sync = true
+IRB.setup nil
+IRB.conf.merge!(
+  AUTO_INDENT: true,
+  IRB_NAME: 'bojangles',
+  IRB_PATH: '(bojangles)',
+  PROMPT_MODE: :CLASSIC,
+  RC: false
+)
+
+FancyIrb.start
+Wirb.start
+IRB::Irb.new.run(IRB.conf)

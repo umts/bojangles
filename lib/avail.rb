@@ -3,6 +3,8 @@
 require 'json'
 require 'net/http'
 
+require 'models/route'
+
 module Avail
   PVTA_BASE_API_URL = 'https://bustracker.pvta.com/InfoPoint/rest'
 

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'active_record'
+
 class Service < ActiveRecord::Base
   has_many :exceptions, class_name: 'ServiceException'
   has_many :trips
