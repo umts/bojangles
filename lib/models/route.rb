@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'active_record'
+
 class Route < ActiveRecord::Base
   has_many :issues
   has_many :trips

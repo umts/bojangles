@@ -2,9 +2,9 @@
 
 require 'active_record'
 require 'json'
-require 'mysql2'
 
 DATABASE_SETTINGS = JSON.parse File.read('config/database.json')
+require DATABASE_SETTINGS.fetch('adapter')
 
 ActiveRecord::Base.establish_connection(DATABASE_SETTINGS)
 

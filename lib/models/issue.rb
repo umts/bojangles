@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'active_record'
+
 class Issue < ActiveRecord::Base
   belongs_to :route
   belongs_to :stop

@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'active_record'
+require 'models/service'
+
 class ServiceException < ActiveRecord::Base
   belongs_to :service
 

@@ -3,6 +3,7 @@
 require 'fileutils'
 require 'net/http'
 require 'zipruby'
+require 'date'
 
 module GTFS
   module Files
