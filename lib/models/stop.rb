@@ -20,7 +20,6 @@ class Stop < ActiveRecord::Base
 
   def self.import(records)
     records.each do |data|
-      puts data[:name]
       record = find_by(data.slice(:hastus_id))
       if record.present?
         record.update! data
