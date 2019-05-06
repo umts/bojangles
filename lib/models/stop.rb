@@ -6,7 +6,8 @@ class Stop < ActiveRecord::Base
   has_many :departures
   has_many :issues
 
-  validates :name, :hastus_id, presence: true, uniqueness: true
+  validates :name, presence: true
+  validates :hastus_id, presence: true, uniqueness: true
 
   scope :active, -> { where active: true }
 
@@ -19,7 +20,12 @@ class Stop < ActiveRecord::Base
 
   def self.import(records)
     records.each do |data|
-      where(data).first_or_create
+      record = find_by(data.slice(:hastus_id))
+      if record.present?
+        record.update! data
+      else
+        create! data
+      end
     end
   end
 end
