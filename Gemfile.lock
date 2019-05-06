@@ -140,5 +140,8 @@ DEPENDENCIES
   wirb
   zipruby (~> 0.3)
 
+RUBY VERSION
+   ruby 2.6.1p33
+
 BUNDLED WITH
-   1.16.0.pre.2
+   2.0.1
