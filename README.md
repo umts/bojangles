@@ -19,7 +19,7 @@ CREATE DATABASE bojangles CHARACTER SET utf8mb4 COLATE utf8mb4_general_ci;
 With Bundler and the correct Ruby installed, run:
 
 ```
-bundle exec rake REINITIALIZE=true bojangles:daily
+bundle exec rake REINITIALIZE=true bojangles:prepare
 ```
 
 to initialize the process. Then, begin monitoring with:
