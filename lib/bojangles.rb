@@ -66,7 +66,11 @@ module Bojangles
       issue_data = Comparator.compare avail_departures, gtfs_departures
       new_issues = Issue.process_new issue_data
       old_issues = Issue.visible - new_issues
-      client = GitHub::Client.new token: GITHUB_TOKEN
+      options = {}.tap do |opts|
+        opts[:token] = GITHUB_TOKEN
+        opts[:repo] = GITHUB_REPO if GITHUB_REPO
+      end
+      client = GitHub::Client.new options
       client.create_or_reopen new_issues
       client.comment_resolved old_issues
     end
