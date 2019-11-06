@@ -25,7 +25,7 @@ module Bojangles
   GITHUB_REPO = CONFIG['github_repo']
   DEPARTURE_FUTURE_MINUTES = 3 * 60
 
-  def prepare
+  def self.prepare
     if GTFS::Files.out_of_date? || ENV['REINITIALIZE']
       GTFS::Files.mark_import_in_progress
       GTFS::Files.get_new!
@@ -45,7 +45,7 @@ module Bojangles
     Issue.close client.closed_issues
   end
 
-  def run
+  def self.run
     unless GTFS::Files.import_in_progress?
       Stop.activate CONFIG.fetch('stops')
 
