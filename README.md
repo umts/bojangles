@@ -13,7 +13,7 @@ ways to configure this, but this should work:
 ```sql
 CREATE USER 'bojangles'@'localhost' IDENTIFIED BY 'SomePassword';
 GRANT ALL PRIVILEGES ON bojangles.* TO 'bojangles'@'localhost';
-CREATE DATABASE bojangles CHARACTER SET utf8mb4 COLATE utf8mb4_general_ci;
+CREATE DATABASE bojangles CHARACTER SET = 'utf8mb4' COLLATE = 'utf8mb4_general_ci';
 ```
 
 With Bundler and the correct Ruby installed, run:
