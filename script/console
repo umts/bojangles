@@ -11,12 +11,13 @@ $_libdir = Pathname(__dir__).join('..', 'lib')
 $LOAD_PATH.unshift $_libdir.to_path
 
 def reload!
-  verbose, $VERBOSE = $VERBOSE, nil
+  verbose = $VERBOSE
+  $VERBOSE = nil
   loaded = $_libdir.glob('**/*.rb').map do |lib|
     load lib
   end.all?
   $VERBOSE = verbose
-  return loaded
+  loaded
 end
 
 reload!

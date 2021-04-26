@@ -9,13 +9,13 @@ set :deploy_to, "/srv/#{fetch :application}"
 set :keep_releases, 5
 
 append :linked_files,
-  'cached_departures.json',
-  'cached_stops.json',
-  'error_messages.json',
-  'config/config.json',
-  'config/database.json',
-  'route_mappings.json'
+       'cached_departures.json',
+       'cached_stops.json',
+       'error_messages.json',
+       'config/config.json',
+       'config/database.json',
+       'route_mappings.json'
 
 append :linked_dirs,
-  '.bundle'
-  'log'
+       '.bundle'
+'log'

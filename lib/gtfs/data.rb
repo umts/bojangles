@@ -15,7 +15,7 @@ module GTFS
           start_date: Date.parse(row.fetch('start_date')),
           end_date: Date.parse(row.fetch('end_date'))
         }
-        weekdays = row.values_at(*%w[sunday monday tuesday wednesday thursday friday saturday])
+        weekdays = row.values_at('sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday')
                       .map { |i| i == '1' }
         record[:weekdays] = weekdays
         records << record
