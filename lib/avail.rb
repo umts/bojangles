@@ -12,7 +12,7 @@ module Avail
   # Each value is a hash mapping from route direction data to the next time.
   # The route direction data is route and headsign.
   def self.next_departures_from(stops, after:)
-    routes = Hash[Route.all.map { |r| [r.avail_id, r] }]
+    routes = Route.all.map { |r| [r.avail_id, r] }.to_h
     times = {}
     stops.each do |stop|
       uri = departures_uri(stop.hastus_id)
@@ -23,6 +23,7 @@ module Avail
         route_dir.fetch('Departures').each do |departure|
           time = parse_json_unix_timestamp departure.fetch('SDT')
           next if time < after
+
           trip = departure.fetch 'Trip'
           headsign = trip.fetch 'InternetServiceDesc'
           route_data = [route, headsign]

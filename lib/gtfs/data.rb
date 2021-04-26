@@ -4,7 +4,7 @@ require 'csv'
 
 module GTFS
   module Data
-    LOCAL_GTFS_DIR = File.expand_path('../../../gtfs_files', __FILE__)
+    LOCAL_GTFS_DIR = File.expand_path('../../gtfs_files', __dir__)
 
     def self.calendar_records
       records = []
@@ -47,6 +47,7 @@ module GTFS
       CSV.foreach filename, headers: true do |row|
         number = row.fetch 'route_short_name'
         next unless route_mappings.key? number
+
         records << {
           number: number,
           hastus_id: row.fetch('route_id'),

@@ -25,8 +25,8 @@ class Departure < ActiveRecord::Base
   end
 
   def self.import(records)
-    trips = Hash[Trip.pluck(:hastus_id, :id)]
-    stops = Hash[Stop.pluck(:hastus_id, :id)]
+    trips = Trip.pluck(:hastus_id, :id).to_h
+    stops = Stop.pluck(:hastus_id, :id).to_h
     records.each do |data|
       data[:trip_id] = trips[data[:trip_id]]
       data[:stop_id] = stops[data[:stop_id].to_i]

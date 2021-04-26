@@ -7,8 +7,8 @@ require 'date'
 
 module GTFS
   module Files
-    LOCAL_GTFS_DIR = File.expand_path('../../../gtfs_files', __FILE__)
-    IN_PROGRESS_FILE = File.expand_path('../../../import_in_progress', __FILE__)
+    LOCAL_GTFS_DIR = File.expand_path('../../gtfs_files', __dir__)
+    IN_PROGRESS_FILE = File.expand_path('../../import_in_progress', __dir__)
     REMOTE_GTFS_PROTOCOL = 'http://'
     REMOTE_GTFS_HOST =     'pvta.com'
     REMOTE_GTFS_PATH =     '/g_trans/google_transit.zip'
@@ -50,6 +50,7 @@ module GTFS
     def self.out_of_date?
       return false unless File.directory? LOCAL_GTFS_DIR
       return true unless File.exist? "#{LOCAL_GTFS_DIR}/agency.txt"
+
       http = Net::HTTP.new REMOTE_GTFS_HOST
       begin
         response = http.head REMOTE_GTFS_PATH
