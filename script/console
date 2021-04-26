@@ -7,22 +7,20 @@ require 'wirb'
 require 'fancy_irb'
 require 'pathname'
 
-$_libdir = Pathname(__dir__).join('..', 'lib')
-$LOAD_PATH.unshift $_libdir.to_path
+@_libdir = Pathname(__dir__).join('..', 'lib')
+$LOAD_PATH.unshift @_libdir.to_path
 
 def reload!
   verbose = $VERBOSE
   $VERBOSE = nil
-  loaded = $_libdir.glob('**/*.rb').map do |lib|
-    load lib
-  end.all?
+  loaded = @_libdir.glob('**/*.rb').map { |lib| load(lib) }.all?
   $VERBOSE = verbose
   loaded
 end
 
 reload!
 
-STDOUT.sync = true
+$stdout.sync = true
 IRB.setup nil
 IRB.conf.merge!(
   AUTO_INDENT: true,

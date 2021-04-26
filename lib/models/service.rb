@@ -42,8 +42,8 @@ class Service < ActiveRecord::Base
   private
 
   def weekdays_format
-    unless weekdays.length == 7 && weekdays.all? { |d| [true, false].include? d }
-      errors.add :weekdays, 'must be a boolean array of length 7'
-    end
+    return if weekdays.length == 7 && weekdays.all? { |d| [true, false].include? d }
+
+    errors.add :weekdays, 'must be a boolean array of length 7'
   end
 end

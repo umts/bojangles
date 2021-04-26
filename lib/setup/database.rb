@@ -8,6 +8,7 @@ require DATABASE_SETTINGS.fetch('adapter')
 
 ActiveRecord::Base.establish_connection(DATABASE_SETTINGS)
 
+# rubocop:disable Metrics/BlockLength
 if ActiveRecord::Base.connection.tables.none? || ENV['REINITIALIZE']
   ActiveRecord::Schema.define do
     create_table :departures, force: true do |t|
@@ -61,3 +62,4 @@ if ActiveRecord::Base.connection.tables.none? || ENV['REINITIALIZE']
     end
   end
 end
+# rubocop:enable Metrics/BlockLength
