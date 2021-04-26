@@ -14,6 +14,7 @@ module GTFS
     REMOTE_GTFS_PATH =     '/g_trans/google_transit.zip'
 
     # Downloads the ZIP archive
+    # rubocop:disable Naming/AccessorMethodName
     def self.get_new!
       FileUtils.rm_rf LOCAL_GTFS_DIR
       FileUtils.mkdir_p LOCAL_GTFS_DIR
@@ -33,6 +34,7 @@ module GTFS
         end
       end
     end
+    # rubocop:enable Naming/AccessorMethodName
 
     def self.import_in_progress?
       File.file? IN_PROGRESS_FILE
