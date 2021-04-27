@@ -46,33 +46,33 @@ module Bojangles
   end
 
   def self.run
-    unless GTFS::Files.import_in_progress?
-      Stop.activate CONFIG.fetch('stops')
+    return if GTFS::Files.import_in_progress?
 
-      date = Date.today
-      time = Time.now.seconds_since_midnight.to_i / 60
-      if Time.now.hour < 4
-        date = Date.yesterday
-        time += 24 * 60
-      end
-      time_range = time..(time + DEPARTURE_FUTURE_MINUTES)
+    Stop.activate CONFIG.fetch('stops')
 
-      # Avail and GTFS departures should be identical data structures
-      # with identical data.
-      avail_departures = Avail.next_departures_from Stop.active, after: time
-      gtfs_departures = Departure.next_from Stop.active, on: date,
-                                                         in_range: time_range
-
-      issue_data = Comparator.compare avail_departures, gtfs_departures
-      new_issues = Issue.process_new issue_data
-      old_issues = Issue.visible - new_issues
-      options = {}.tap do |opts|
-        opts[:token] = GITHUB_TOKEN
-        opts[:repo] = GITHUB_REPO if GITHUB_REPO
-      end
-      client = GitHub::Client.new options
-      client.create_or_reopen new_issues
-      client.comment_resolved old_issues
+    date = Date.today
+    time = Time.now.seconds_since_midnight.to_i / 60
+    if Time.now.hour < 4
+      date = Date.yesterday
+      time += 24 * 60
     end
+    time_range = time..(time + DEPARTURE_FUTURE_MINUTES)
+
+    # Avail and GTFS departures should be identical data structures
+    # with identical data.
+    avail_departures = Avail.next_departures_from Stop.active, after: time
+    gtfs_departures = Departure.next_from Stop.active, on: date,
+                                                       in_range: time_range
+
+    issue_data = Comparator.compare avail_departures, gtfs_departures
+    new_issues = Issue.process_new issue_data
+    old_issues = Issue.visible - new_issues
+    options = {}.tap do |opts|
+      opts[:token] = GITHUB_TOKEN
+      opts[:repo] = GITHUB_REPO if GITHUB_REPO
+    end
+    client = GitHub::Client.new options
+    client.create_or_reopen new_issues
+    client.comment_resolved old_issues
   end
 end

@@ -52,12 +52,8 @@ class Issue < ActiveRecord::Base
   def self.process_new(issue_data)
     issue_data.map do |data|
       identifiers = data.slice :route, :stop, :headsign, :issue_type
-      issue = find_by identifiers
-      if issue.nil?
-        issue = create identifiers.merge(open: true, visible: true)
-      end
-      issue.update data.slice(:sdt, :alternatives)
-      issue
+      defaults = data.slice(:sdt, :alternatives).merge(open: true, visible: true)
+      create_with(defaults).find_or_create_by(identifiers)
     end
   end
 

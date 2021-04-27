@@ -7,13 +7,14 @@ require 'date'
 
 module GTFS
   module Files
-    LOCAL_GTFS_DIR = File.expand_path('../../../gtfs_files', __FILE__)
-    IN_PROGRESS_FILE = File.expand_path('../../../import_in_progress', __FILE__)
+    LOCAL_GTFS_DIR = File.expand_path('../../gtfs_files', __dir__)
+    IN_PROGRESS_FILE = File.expand_path('../../import_in_progress', __dir__)
     REMOTE_GTFS_PROTOCOL = 'http://'
     REMOTE_GTFS_HOST =     'pvta.com'
     REMOTE_GTFS_PATH =     '/g_trans/google_transit.zip'
 
     # Downloads the ZIP archive
+    # rubocop:disable Naming/AccessorMethodName
     def self.get_new!
       FileUtils.rm_rf LOCAL_GTFS_DIR
       FileUtils.mkdir_p LOCAL_GTFS_DIR
@@ -33,6 +34,7 @@ module GTFS
         end
       end
     end
+    # rubocop:enable Naming/AccessorMethodName
 
     def self.import_in_progress?
       File.file? IN_PROGRESS_FILE
@@ -49,7 +51,8 @@ module GTFS
     # Is the remote GTFS archive more up-to-date than our cached files?
     def self.out_of_date?
       return false unless File.directory? LOCAL_GTFS_DIR
-      return true unless File.exists? "#{LOCAL_GTFS_DIR}/agency.txt"
+      return true unless File.exist? "#{LOCAL_GTFS_DIR}/agency.txt"
+
       http = Net::HTTP.new REMOTE_GTFS_HOST
       begin
         response = http.head REMOTE_GTFS_PATH
