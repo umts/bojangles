@@ -3,8 +3,8 @@
 source 'https://rubygems.org'
 ruby IO.read(File.expand_path('.ruby-version', __dir__)).strip
 
-gem 'activerecord', '~> 6.1'
-gem 'activesupport', '~> 6.1'
+gem 'activerecord', '~> 7.0'
+gem 'activesupport', '~> 7.0'
 gem 'mysql2', '~> 0.4'
 gem 'octokit', '~> 4.7'
 gem 'rake', '~> 12.3'
