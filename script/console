@@ -3,8 +3,6 @@
 
 require 'irb'
 require 'irb/completion'
-require 'wirb'
-require 'fancy_irb'
 require 'pathname'
 
 @_libdir = Pathname(__dir__).join('..', 'lib')
@@ -30,6 +28,4 @@ IRB.conf.merge!(
   RC: false
 )
 
-FancyIrb.start
-Wirb.start
 IRB::Irb.new.run(IRB.conf)
