@@ -29,7 +29,7 @@ class Departure < ActiveRecord::Base
     stops = Stop.pluck(:hastus_id, :id).to_h
     records.each do |data|
       data[:trip_id] = trips[data[:trip_id]]
-      data[:stop_id] = stops[data[:stop_id].to_i]
+      data[:stop_id] = stops[data[:stop_id]]
       where(data).first_or_create
     end
   end

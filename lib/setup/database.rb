@@ -50,7 +50,7 @@ if ActiveRecord::Base.connection.tables.none? || ENV['REINITIALIZE']
 
     create_table :stops, force: true do |t|
       t.boolean :active, default: true
-      t.integer :hastus_id
+      t.string  :hastus_id
       t.string  :name
     end
 
