@@ -41,7 +41,7 @@ module Bojangles
       opts[:token] = GITHUB_TOKEN
       opts[:repo] = GITHUB_REPO if GITHUB_REPO
     end
-    client = GitHub::Client.new options
+    client = GitHub::Client.new(**options)
     Issue.close client.closed_issues
   end
 
@@ -71,7 +71,7 @@ module Bojangles
       opts[:token] = GITHUB_TOKEN
       opts[:repo] = GITHUB_REPO if GITHUB_REPO
     end
-    client = GitHub::Client.new options
+    client = GitHub::Client.new(**options)
     client.create_or_reopen new_issues
     client.comment_resolved old_issues
   end
