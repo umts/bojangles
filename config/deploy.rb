@@ -17,5 +17,5 @@ append :linked_files,
        'route_mappings.json'
 
 append :linked_dirs,
-       '.bundle'
-'log'
+       '.bundle',
+       'log'
