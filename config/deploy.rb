@@ -4,7 +4,7 @@ lock '3.14.1'
 
 set :application, 'bojangles'
 set :repo_url, 'https://github.com/umts/bojangles.git'
-set :branch, :master
+set :branch, :main
 set :deploy_to, "/srv/#{fetch :application}"
 set :keep_releases, 5
 
