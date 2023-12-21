@@ -1,12 +1,4 @@
 gtfs_files/**/*
 import_in_progress
-cached_departures.json
-cached_stops.json
-emailed_status.json
-route_mappings.json
-error_messages.json
-log/*
 config/config.json
 config/database.json
-coverage
-!/coverage/.last_run.json
