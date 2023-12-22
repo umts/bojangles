@@ -9,7 +9,7 @@ gem 'mysql2', '~> 0.4'
 gem 'octokit', '~> 4.7'
 gem 'rake', '~> 12.3'
 gem 'whenever', '~> 0.9'
-gem 'zipruby', '~> 0.3'
+gem 'rubyzip'
 
 group :development, :test do
   gem 'bcrypt_pbkdf', '>= 1.0', '< 2.0', require: false
