@@ -2,3 +2,4 @@ gtfs_files/**/*
 import_in_progress
 config/config.json
 config/database.json
+log/
