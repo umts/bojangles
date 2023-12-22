@@ -40,7 +40,7 @@ GEM
     json (2.6.2)
     method_source (1.0.0)
     minitest (5.19.0)
-    mysql2 (0.5.4)
+    mysql2 (0.5.5)
     net-scp (4.0.0)
       net-ssh (>= 2.6.5, < 8.0.0)
     net-ssh (7.0.1)
@@ -58,7 +58,7 @@ GEM
       pry (>= 0.13, < 0.15)
     public_suffix (5.0.0)
     rainbow (3.1.1)
-    rake (12.3.3)
+    rake (13.1.0)
     regexp_parser (2.6.1)
     rexml (3.2.5)
     rubocop (1.39.0)
@@ -84,7 +84,7 @@ GEM
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     unicode-display_width (2.3.0)
-    whenever (0.11.0)
+    whenever (1.0.0)
       chronic (>= 0.6.3)
     zipruby (0.3.6)
 
@@ -99,12 +99,12 @@ DEPENDENCIES
   capistrano-bundler
   capistrano-pending
   ed25519
-  mysql2 (~> 0.4)
+  mysql2
   octokit (~> 4.7)
   pry-byebug
-  rake (~> 12.3)
+  rake
   rubocop
-  whenever (~> 0.9)
+  whenever
   zipruby (~> 0.3)
 
 RUBY VERSION

@@ -5,10 +5,10 @@ ruby file: '.ruby-version'
 
 gem 'activerecord', '~> 7.0'
 gem 'activesupport', '~> 7.0'
-gem 'mysql2', '~> 0.4'
+gem 'mysql2'
 gem 'octokit', '~> 4.7'
-gem 'rake', '~> 12.3'
-gem 'whenever', '~> 0.9'
+gem 'rake'
+gem 'whenever'
 gem 'zipruby', '~> 0.3'
 
 group :development, :test do
