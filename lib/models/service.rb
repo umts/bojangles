@@ -9,7 +9,7 @@ class Service < ActiveRecord::Base
   validates :hastus_id, presence: true, uniqueness: true
   validates :start_date, :end_date, presence: true
 
-  serialize :weekdays, Array
+  serialize :weekdays, type: Array
   validate :weekdays_format
 
   def self.added_on(date)
