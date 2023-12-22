@@ -2,7 +2,7 @@
 
 require 'fileutils'
 require 'net/http'
-require 'zipruby'
+require 'zip'
 require 'date'
 
 module GTFS
@@ -25,12 +25,9 @@ module GTFS
       rescue SocketError
         return # TODO: tell someone something's wrong
       end
-      Zip::Archive.open_buffer zipfile do |archive|
+      Zip::File.open_buffer zipfile do |archive|
         archive.each do |file|
-          file_path = File.join LOCAL_GTFS_DIR, file.name
-          File.open file_path, 'w' do |f|
-            f << file.read
-          end
+          file.extract File.join(LOCAL_GTFS_DIR, file.name)
         end
       end
     end

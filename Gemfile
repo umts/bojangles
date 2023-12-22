@@ -8,8 +8,8 @@ gem 'activesupport', '~> 7.0'
 gem 'mysql2'
 gem 'octokit'
 gem 'rake'
+gem 'rubyzip'
 gem 'whenever'
-gem 'zipruby', '~> 0.3'
 
 group :development, :test do
   gem 'bcrypt_pbkdf', require: false

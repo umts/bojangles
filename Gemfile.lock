@@ -77,6 +77,7 @@ GEM
       parser (>= 3.1.1.0)
     ruby-progressbar (1.11.0)
     ruby2_keywords (0.0.5)
+    rubyzip (2.3.2)
     sawyer (0.9.2)
       addressable (>= 2.3.5)
       faraday (>= 0.17.3, < 3)
@@ -88,7 +89,6 @@ GEM
     unicode-display_width (2.3.0)
     whenever (1.0.0)
       chronic (>= 0.6.3)
-    zipruby (0.3.6)
 
 PLATFORMS
   ruby
@@ -106,8 +106,8 @@ DEPENDENCIES
   pry-byebug
   rake
   rubocop
+  rubyzip
   whenever
-  zipruby (~> 0.3)
 
 RUBY VERSION
    ruby 3.1.4p223
