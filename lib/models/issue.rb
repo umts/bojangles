@@ -6,7 +6,7 @@ class Issue < ActiveRecord::Base
   belongs_to :route
   belongs_to :stop
 
-  serialize :alternatives, Array
+  serialize :alternatives, type: Array
 
   validates :headsign, :sdt, presence: true
   validates :issue_type, inclusion: { in: %w[missing incorrect] }
